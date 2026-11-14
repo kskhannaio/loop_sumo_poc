@@ -47,7 +47,8 @@ Three principles guide the design:
 5. *Read the result.* A comparison page opens: a map of the changes, a short plain-language
    summary, the key figures against today, and any warnings.
 
-#+CAPTION: Example result summary (illustrative).
+A result summary might read as follows (the figures are made up, for illustration only):
+
 #+begin_example
 Crossing at Ayyappa Temple  (full run, compared with today)
   People crossing Hosur Road     98 s faster on average, 140 m less walking
