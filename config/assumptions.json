@@ -1,0 +1,101 @@
+{
+  "_about": "Every number the simulation relies on that is NOT measured. Values tagged ASSUMED are placeholders until the site walk / counts replace them; DATA marks values taken from a source. Edit this file, then `python run.py` to rebuild everything.",
+  "time": {
+    "_note": "Weekday morning peak. Warm-up is simulated but excluded from all metrics.",
+    "sim_begin": "07:30",
+    "metrics_begin": "08:00",
+    "metrics_end": "09:00",
+    "sim_end": "09:15",
+    "seed": 42,
+    "step_length_s": 0.5,
+    "lateral_resolution_m": 0.8
+  },
+  "signals": {
+    "_tag": "ASSUMED - replace with timings measured at A, B, C on the walk",
+    "junction_cycle_s": 120,
+    "junction_yellow_s": 3,
+    "junction_min_ped_green_s": 10,
+    "midblock_cycle_s": 75,
+    "midblock_ped_green_s": 18,
+    "midblock_yellow_s": 3
+  },
+  "vehicle_mix": {
+    "_tag": "DATA - OD & toll analysis, ADT 2025-26 Indiranagar-Silk Board corridor (buses removed; they come from GTFS)",
+    "two_wheeler": 11758,
+    "car": 7968,
+    "van_maxicab": 1335,
+    "auto": 3478,
+    "goods_auto": 480,
+    "lcv": 1039,
+    "truck": 262
+  },
+  "od_peak_veh_per_hour": {
+    "_tag": "ASSUMED except 'corridor' (DATA-derived: 27,300 veh/day x 8.5% peak-hour share / 2 directions ~ 1,150 per direction). Gateways: HN Hosur Rd north (beyond C), HS Hosur Rd south (beyond B), SE Sarjapura Rd east (beyond A), IRR Inner Ring Rd / 100 Ft Rd north-east of A, TW Tavarekere Main Rd west of C. Tavarekere Main Rd is one-way westbound in OSM, so TW is an exit only.",
+    "IRR>HS": 1150,
+    "HS>IRR": 1150,
+    "HN>HS": 1500,
+    "HS>HN": 1500,
+    "HN>SE": 400,
+    "SE>HN": 400,
+    "SE>HS": 250,
+    "HS>SE": 250,
+    "IRR>HN": 200,
+    "HN>IRR": 200,
+    "SE>TW": 150,
+    "HS>TW": 150,
+    "local_random": 400,
+    "HN>TW": 150
+  },
+  "flyover_opened": {
+    "_tag": "DATA-derived: OD study expects 12,357-16,842 of 27,300 veh/day (45-62%) to divert to the elevated corridor; midpoint used",
+    "divert_share": 0.53,
+    "applies_to": [
+      "IRR>HS",
+      "HS>IRR",
+      "SE>HS",
+      "HS>SE"
+    ]
+  },
+  "buses": {
+    "_tag": "DATA for routes and timetabled times (BMTC GTFS by Vonter, ODbL, Monday service); ASSUMED dwell time",
+    "dwell_s": 20,
+    "gtfs_dir_default": "/tmp/claude-1000/-home-hypnogoat-design-challenge/b3609c9a-c1dc-489c-ab28-96dbd4ba0545/scratchpad/gtfs/feed"
+  },
+  "pedestrians": {
+    "_tag": "ASSUMED - replace with the P1-P6 crossing counts from the walk",
+    "pax_per_bus_board_alight": 6,
+    "share_of_bus_pax_crossing_the_road": 0.5,
+    "crossing_trips_per_hour_by_type": {
+      "Bus stop": null,
+      "Healthcare": 60,
+      "Institutional": 60,
+      "Religious": 25,
+      "Recreational": 25,
+      "Public amenities": 25,
+      "Side street": 30
+    },
+    "origin_offset_m": [
+      -60,
+      60
+    ],
+    "background_walk_trips_per_hour": 600,
+    "walking_speed_mps": 1.2
+  },
+  "trial_crossings": {
+    "_tag": "Positions from the study's crossing analysis (data/crossings.geojson): distance in metres along each road from its first junction. 100 Ft Rd only within the feasible zone 225-438 m (ramp wall 45-225 m).",
+    "AB": [
+      250,
+      410
+    ],
+    "BC": [
+      175,
+      340,
+      500
+    ],
+    "CA": [
+      210,
+      370,
+      520
+    ]
+  }
+}
