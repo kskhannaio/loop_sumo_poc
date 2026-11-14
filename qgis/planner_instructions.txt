@@ -1,20 +1,31 @@
-MADIWALA LOOP - PROPOSING CHANGES
-=================================
+MADIWALA LOOP - STUDY MAP AND PROPOSALS
+=======================================
 
 You need QGIS (free): https://qgis.org
 
-1. Unzip this folder anywhere. Keep the two files in it together and don't rename them yet.
+OPEN IT
+1. Unzip this folder anywhere. Keep the files in it together and don't rename them yet.
 2. Double-click  madiwala.qgz  - QGIS opens on the Madiwala loop.
-3. In the Layers panel, click "Proposed changes (points)" (or "(lines)" for things along a road).
+
+EXPLORE THE STUDY (same as the study website)
+- Hover to see what anything is: turn on map tips once with  View > Show Map Tips  (or the speech-bubble
+  icon in the toolbar), then hold the mouse over a bus stop, a crossing, a shop, a footpath dot...
+- Switch views like the website's tabs: click the eye icon at the top of the Layers panel and pick
+  Overview, Crossing, Buses, Footpaths, Street, Site check - or Draw proposals (the starting view).
+- Read the story, figures and checklist: in the group "Story, figures and checklist (tables)",
+  right-click a table > Open Attribute Table.
+- Satellite view: tick "Satellite" in the Background group.
+
+PROPOSE CHANGES
+3. In the Layers panel, click "Proposed changes (points)" - or "(lines)" for things along a road.
 4. Click the pencil (Toggle Editing), then "Add Point Feature" (or "Add Line Feature").
 5. Click on the map where the change goes. A form opens: choose what the change is from the list,
    add details if they apply, and a short note on why.
    For lines, click along the road and right-click to finish.
-6. Repeat for each change. Optionally fill in "About this proposal" (open its attribute table).
+6. Repeat for each change. Optionally fill in "About this proposal" (open its attribute table,
+   click the pencil, add one row).
 7. Click the pencil again and choose Save.
 8. Email back the file  madiwala_proposals.gpkg  (rename it with your name first if you like).
 
-Everything except your two "Proposed changes" layers is study data and is locked. Tick layers on
-and off in the Layers panel: the crossings study, the flyover contract (ramp wall, footpath
-survey), buses, places of interest and walking distances. The purple squares are the study's own
-8 proposed crossings, shown as an example of a finished proposal.
+Everything except your proposal layers is study data and is locked. The purple squares are the
+study's own 8 proposed crossings, shown as an example of a finished proposal.
