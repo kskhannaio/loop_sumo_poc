@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- 2026-11-14 Sat 22:00 -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Madiwala Loop Simulation</title>
+<meta name="generator" content="Org Mode" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="content" class="content">
+<header>
+<h1 class="title">Madiwala Loop Simulation</h1>
+<p class="subtitle" role="doc-subtitle">What the model simulates, what it shows, and how far to trust it</p>
+</header><nav id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#org4be7c10">1. Summary</a></li>
+<li><a href="#org6e67102">2. What is being simulated</a>
+<ul>
+<li><a href="#org48178f1">2.1. The place</a></li>
+<li><a href="#org2e664a6">2.2. The people and vehicles</a></li>
+<li><a href="#org2aeff3f">2.3. What the model measures</a></li>
+</ul>
+</li>
+<li><a href="#orgc35440a">3. The scenarios in more detail</a>
+<ul>
+<li><a href="#orgd59e1e9">3.1. Today (baseline)</a></li>
+<li><a href="#orgaf5f993">3.2. Trial crossings</a></li>
+<li><a href="#org1eb89f1">3.3. Trial crossings with the flyover open</a></li>
+</ul>
+</li>
+<li><a href="#org46279a1">4. Results</a>
+<ul>
+<li><a href="#orga652d54">4.1. People crossing the loop roads</a></li>
+<li><a href="#org759fd4f">4.2. Traffic and buses</a></li>
+</ul>
+</li>
+<li><a href="#org359abe0">5. How far to trust the results</a>
+<ul>
+<li><a href="#org9f8c712">5.1. What comes from data</a></li>
+<li><a href="#orga7297f0">5.2. What is assumed</a></li>
+<li><a href="#org6ff5a70">5.3. Known limits</a></li>
+</ul>
+</li>
+<li><a href="#orgd9cfa34">6. Making it more reliable: what the site walk should collect</a></li>
+<li><a href="#org49b2f6c">7. What else the model could test</a></li>
+<li><a href="#org22bc830">8. Data sources</a></li>
+</ul>
+</div>
+</nav>
+<div id="outline-container-org4be7c10" class="outline-2">
+<h2 id="org4be7c10"><span class="section-number-2">1.</span> Summary</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+This repository contains a computer simulation of the Madiwala loop in Bengaluru: the triangle of
+<b>100 Feet Road</b>, <b>Hosur Road</b> and <b>Sarjapura Road</b> between junctions A, B and C. It recreates a
+weekday morning peak (8–9 am) with every vehicle, bus and pedestrian moving individually through a
+model of the streets, and asks one question:
+</p>
+
+<blockquote>
+<p>
+What changes for people on foot, and for traffic, if signalised pedestrian crossings are added
+mid-block on the three loop roads?
+</p>
+</blockquote>
+
+<p>
+Three versions of the street are compared under identical demand:
+</p>
+
+<table>
+
+
+<colgroup>
+<col  class="org-left">
+
+<col  class="org-left">
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Scenario</th>
+<th scope="col" class="org-left">What is different</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Today (baseline)</td>
+<td class="org-left">People can cross only at junctions and side-street mouths</td>
+</tr>
+
+<tr>
+<td class="org-left">Trial crossings</td>
+<td class="org-left">Eight new signalised mid-block crossings at the positions proposed in the study</td>
+</tr>
+
+<tr>
+<td class="org-left">Trial + flyover open</td>
+<td class="org-left">The trial crossings, with about half of the corridor's through traffic on the flyover</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+<b>Main finding.</b> With the trial crossings, people crossing a loop road reach their destination about
+<b>37% faster</b> and walk about <b>55% less extra distance</b> looking for a place to cross. The gain is
+largest on Hosur Road and Sarjapura Road. Effects on traffic cannot yet be stated with confidence,
+because traffic volumes are estimates (see <a href="#org359abe0">How far to trust the results</a>).
+</p>
+</div>
+</div>
+<div id="outline-container-org6e67102" class="outline-2">
+<h2 id="org6e67102"><span class="section-number-2">2.</span> What is being simulated</h2>
+<div class="outline-text-2" id="text-2">
+</div>
+<div id="outline-container-org48178f1" class="outline-3">
+<h3 id="org48178f1"><span class="section-number-3">2.1.</span> The place</h3>
+<div class="outline-text-3" id="text-2-1">
+<p>
+The model covers the loop and a few hundred metres of the surrounding streets. The street network
+is taken from OpenStreetMap and includes:
+</p>
+
+<ul class="org-ul">
+<li>every carriageway, with its number of lanes, direction and speed limit;</li>
+<li>left-hand traffic, and the underpass and flyover kept on separate levels from the roads below;</li>
+<li>footpaths along the roads and pedestrian crossings at junctions and side streets;</li>
+<li>traffic signals at junctions A, B and C;</li>
+<li>the bus stops on the loop, placed from the study's bus stop survey.</li>
+</ul>
+
+
+<figure id="orgd4446cd">
+<img src="../report/map.png" alt="map.png">
+
+<figcaption><span class="figure-number">Figure 1: </span>The loop in the three scenarios. Road colour shows average vehicle speed (red is slow, green is free-flowing); purple squares are the trial crossings.</figcaption>
+</figure>
+</div>
+</div>
+<div id="outline-container-org2e664a6" class="outline-3">
+<h3 id="org2e664a6"><span class="section-number-3">2.2.</span> The people and vehicles</h3>
+<div class="outline-text-3" id="text-2-2">
+<p>
+The model is an <i>agent-based</i> simulation: each vehicle and each pedestrian is an individual with
+its own origin, destination, speed and behaviour, rather than an averaged flow. Over the simulated
+hour and a half (7:30–9:15 am, with the first half hour as warm-up) the model contains roughly:
+</p>
+
+<ul class="org-ul">
+<li><b>14,000 vehicles</b>, in the mix measured in the corridor's origin–destination survey: 43%
+two-wheelers, 29% cars, 13% autos, and the remainder vans, goods autos, light commercial vehicles
+and trucks. Two-wheelers are allowed to filter between cars, approximating Bengaluru traffic.</li>
+<li><b>About 500 real bus trips</b>, taken from the BMTC timetable, following their actual routes through
+the area and stopping at the loop's bus stops.</li>
+<li><b>About 4,900 pedestrians</b>. Most are people who need to get across one of the loop roads to reach
+a specific place: a bus stop, the hospital, a college gate, a temple, a park, a side street.
+The rest are general walking along the footpaths.</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org2aeff3f" class="outline-3">
+<h3 id="org2aeff3f"><span class="section-number-3">2.3.</span> What the model measures</h3>
+<div class="outline-text-3" id="text-2-3">
+<p>
+For each scenario the model records:
+</p>
+
+<ul class="org-ul">
+<li><b>For people on foot:</b> time to reach their destination, time lost waiting at crossings, distance
+actually walked compared with the straight-line distance, and which crossings they used.</li>
+<li><b>For traffic:</b> travel time and speed along each loop road in each direction, delay per vehicle,
+and queue lengths at junctions A, B, C and at each new crossing.</li>
+<li><b>For buses:</b> delay per trip.</li>
+<li><b>As checks on the model itself:</b> vehicles that got stuck and had to be moved on by the
+software, and collisions. Both should be rare.</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="outline-container-orgc35440a" class="outline-2">
+<h2 id="orgc35440a"><span class="section-number-2">3.</span> The scenarios in more detail</h2>
+<div class="outline-text-2" id="text-3">
+</div>
+<div id="outline-container-orgd59e1e9" class="outline-3">
+<h3 id="orgd59e1e9"><span class="section-number-3">3.1.</span> Today (baseline)</h3>
+<div class="outline-text-3" id="text-3-1">
+<p>
+People can cross where the street network already has a crossing: the signalised crossings at the
+three junctions and the unsignalised crossings where side streets meet the main roads. In between,
+a person who wants to reach the far side must walk to the nearest of these.
+</p>
+</div>
+</div>
+<div id="outline-container-orgaf5f993" class="outline-3">
+<h3 id="orgaf5f993"><span class="section-number-3">3.2.</span> Trial crossings</h3>
+<div class="outline-text-3" id="text-3-2">
+<p>
+Eight signalised crossings are added mid-block, at the positions identified in the study's
+analysis of crossing gaps and of the places people are trying to reach. Distances are measured
+along each road from its first junction:
+</p>
+
+<table>
+
+
+<colgroup>
+<col  class="org-left">
+
+<col  class="org-left">
+
+<col  class="org-left">
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Road</th>
+<th scope="col" class="org-left">Crossing positions</th>
+<th scope="col" class="org-left">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">100 Feet Road</td>
+<td class="org-left">250 m, 410 m from A</td>
+<td class="org-left">Only possible between 225 m and 438 m; the flyover ramp wall blocks 45–225 m</td>
+</tr>
+
+<tr>
+<td class="org-left">Hosur Road</td>
+<td class="org-left">175 m, 340 m, 500 m from B</td>
+<td class="org-left">175 m serves the Ayyappa Temple bus stops</td>
+</tr>
+
+<tr>
+<td class="org-left">Sarjapura Road</td>
+<td class="org-left">210 m, 370 m, 520 m from C</td>
+<td class="org-left">210 m serves the medical college gate</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Each crossing spans both carriageways of the divided road, and runs on a short, pedestrian-friendly
+signal cycle of 75 seconds with 18 seconds of green for pedestrians.
+</p>
+</div>
+</div>
+<div id="outline-container-org1eb89f1" class="outline-3">
+<h3 id="org1eb89f1"><span class="section-number-3">3.3.</span> Trial crossings with the flyover open</h3>
+<div class="outline-text-3" id="text-3-3">
+<p>
+The same crossings, with 53% of the through traffic between Inner Ring Road and Hosur Road (south)
+moved onto the elevated corridor. The 53% is the midpoint of the 45–62% diversion estimated in the
+corridor's origin–destination and toll study. This scenario indicates how much road capacity the
+flyover could free up for the crossings.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org46279a1" class="outline-2">
+<h2 id="org46279a1"><span class="section-number-2">4.</span> Results</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+All results are for trips starting between 8 and 9 am. The same people and vehicles are generated
+in every scenario, so differences come from the street design rather than from chance.
+</p>
+</div>
+<div id="outline-container-orga652d54" class="outline-3">
+<h3 id="orga652d54"><span class="section-number-3">4.1.</span> People crossing the loop roads</h3>
+<div class="outline-text-3" id="text-4-1">
+<table>
+
+
+<colgroup>
+<col  class="org-left">
+
+<col  class="org-left">
+
+<col  class="org-left">
+
+<col  class="org-left">
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Scenario</th>
+<th scope="col" class="org-left">People crossing</th>
+<th scope="col" class="org-left">Average trip time</th>
+<th scope="col" class="org-left">Average extra walking</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Today</td>
+<td class="org-left">2,647</td>
+<td class="org-left">194 s</td>
+<td class="org-left">156 m</td>
+</tr>
+
+<tr>
+<td class="org-left">Trial crossings</td>
+<td class="org-left">2,633</td>
+<td class="org-left">123 s</td>
+<td class="org-left">71 m</td>
+</tr>
+
+<tr>
+<td class="org-left">Trial + flyover open</td>
+<td class="org-left">2,633</td>
+<td class="org-left">120 s</td>
+<td class="org-left">71 m</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+<i>Extra walking</i> is the distance walked beyond the straight line from origin to destination,
+which is mostly the detour to reach a crossing.
+</p>
+
+<table>
+
+
+<colgroup>
+<col  class="org-left">
+
+<col  class="org-left">
+
+<col  class="org-left">
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Road</th>
+<th scope="col" class="org-left">Today: time / extra walk</th>
+<th scope="col" class="org-left">Trial: time / extra walk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">100 Feet Road</td>
+<td class="org-left">82 s / 42 m</td>
+<td class="org-left">85 s / 36 m</td>
+</tr>
+
+<tr>
+<td class="org-left">Hosur Road</td>
+<td class="org-left">286 s / 260 m</td>
+<td class="org-left">165 s / 117 m</td>
+</tr>
+
+<tr>
+<td class="org-left">Sarjapura Road</td>
+<td class="org-left">201 s / 149 m</td>
+<td class="org-left">113 s / 52 m</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Hosur Road gains the most: today, a person crossing it walks on average a quarter of a kilometre
+out of their way. 100 Feet Road changes little, because the flyover ramp wall restricts where a
+crossing can go, and the existing junction crossings already serve most destinations there.
+</p>
+
+
+<figure id="org7017287">
+<img src="../report/people.png" alt="people.png">
+
+<figcaption><span class="figure-number">Figure 2: </span>Pedestrian trip time and extra walking, by road and scenario.</figcaption>
+</figure>
+</div>
+</div>
+<div id="outline-container-org759fd4f" class="outline-3">
+<h3 id="org759fd4f"><span class="section-number-3">4.2.</span> Traffic and buses</h3>
+<div class="outline-text-3" id="text-4-2">
+<table>
+
+
+<colgroup>
+<col  class="org-left">
+
+<col  class="org-left">
+
+<col  class="org-left">
+
+<col  class="org-left">
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Scenario</th>
+<th scope="col" class="org-left">Vehicle delay per trip</th>
+<th scope="col" class="org-left">Bus delay per trip</th>
+<th scope="col" class="org-left">Vehicles unable to enter</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Today</td>
+<td class="org-left">734 s</td>
+<td class="org-left">997 s</td>
+<td class="org-left">3,855</td>
+</tr>
+
+<tr>
+<td class="org-left">Trial crossings</td>
+<td class="org-left">657 s</td>
+<td class="org-left">777 s</td>
+<td class="org-left">3,420</td>
+</tr>
+
+<tr>
+<td class="org-left">Trial + flyover open</td>
+<td class="org-left">333 s</td>
+<td class="org-left">342 s</td>
+<td class="org-left">576</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+These figures should be read with caution. The traffic volumes used are estimates, and at these
+volumes several thousand vehicles cannot even enter the area during the hour: the network is
+saturated. Under saturation, delay figures mostly reflect which vehicles got in rather than the
+effect of the street design. In particular, the apparent reduction in vehicle delay with the trial
+crossings should not be taken as a finding; adding signals would not normally reduce delay.
+</p>
+
+<p>
+What can be said with more confidence:
+</p>
+
+<ul class="org-ul">
+<li>The new crossings do create queues. The worst are at the 410 m crossing on 100 Feet Road and
+the 500 m crossing on Hosur Road, with average queues of around 80 m.</li>
+<li>Opening the flyover is the only scenario that clearly frees up road space, with large
+reductions in vehicle and bus delay.</li>
+</ul>
+
+
+<figure id="org8729e47">
+<img src="../report/vehicles.png" alt="vehicles.png">
+
+<figcaption><span class="figure-number">Figure 3: </span>Vehicle travel time along each loop road, by direction and scenario.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div id="outline-container-org359abe0" class="outline-2">
+<h2 id="org359abe0"><span class="section-number-2">5.</span> How far to trust the results</h2>
+<div class="outline-text-2" id="text-5">
+</div>
+<div id="outline-container-org9f8c712" class="outline-3">
+<h3 id="org9f8c712"><span class="section-number-3">5.1.</span> What comes from data</h3>
+<div class="outline-text-3" id="text-5-1">
+<ul class="org-ul">
+<li>Street layout, lanes, directions, speed limits and signal locations (OpenStreetMap).</li>
+<li>Bus routes and timetabled times (BMTC timetable data).</li>
+<li>Vehicle mix and flyover diversion share (corridor origin–destination and toll study).</li>
+<li>Locations of bus stops, crossing gaps and the places people cross to reach (this study).</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orga7297f0" class="outline-3">
+<h3 id="orga7297f0"><span class="section-number-3">5.2.</span> What is assumed</h3>
+<div class="outline-text-3" id="text-5-2">
+<ul class="org-ul">
+<li><b>Traffic volumes</b> on each road. Only the 100 Feet Road corridor volume (about 1,150 vehicles
+per hour each way) is derived from survey data; the others are plausible estimates.</li>
+<li><b>Signal timings</b> at A, B and C: fixed 120-second cycles generated by the software, not the real
+phasing.</li>
+<li><b>Pedestrian numbers</b>: people crossing to each bus stop are estimated from the number of buses,
+passengers per bus and the share who cross; people crossing to other places are set per type of
+place (25–60 per hour).</li>
+<li><b>Bus dwell time</b> of 20 seconds per stop.</li>
+</ul>
+
+<p>
+All assumptions are kept in a single settings file so they can be replaced as counts come in.
+</p>
+</div>
+</div>
+<div id="outline-container-org6ff5a70" class="outline-3">
+<h3 id="org6ff5a70"><span class="section-number-3">5.3.</span> Known limits</h3>
+<div class="outline-text-3" id="text-5-3">
+<ul class="org-ul">
+<li><b>No jaywalking.</b> Simulated people cross only at marked crossings. In reality many cross through
+gaps in traffic wherever they are. The model therefore overstates today's detours, and the
+benefit of the trial crossings is best read as an upper bound: the time saved for people who
+would use a crossing.</li>
+<li><b>Uncalibrated traffic.</b> Until volumes and signal timings are matched to counts, absolute traffic
+numbers are indicative only. Comparisons between scenarios for pedestrians are more robust.</li>
+<li><b>Approximate driving behaviour.</b> Lane-free driving and two-wheeler filtering are approximated,
+not reproduced exactly.</li>
+<li><b>Network boundary.</b> The model ends a few hundred metres beyond the loop, so congestion
+beyond it is not represented.</li>
+<li><b>Single run per scenario.</b> Small differences may be due to chance; repeated runs would be
+needed before relying on them.</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="outline-container-orgd9cfa34" class="outline-2">
+<h2 id="orgd9cfa34"><span class="section-number-2">6.</span> Making it more reliable: what the site walk should collect</h2>
+<div class="outline-text-2" id="text-6">
+<table>
+
+
+<colgroup>
+<col  class="org-left">
+
+<col  class="org-left">
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Survey item</th>
+<th scope="col" class="org-left">Improves</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">Pedestrian crossing counts at the six survey points</td>
+<td class="org-left">Pedestrian numbers, and which crossings people use</td>
+</tr>
+
+<tr>
+<td class="org-left">Turning counts at junctions A, B and C</td>
+<td class="org-left">Traffic volumes; resolves the saturation problem</td>
+</tr>
+
+<tr>
+<td class="org-left">Signal cycle and green times at A, B and C</td>
+<td class="org-left">Junction delays and queues</td>
+</tr>
+
+<tr>
+<td class="org-left">Whether southbound buses run on Hosur Road (C to B)</td>
+<td class="org-left">Bus routes; the timetable data shows none</td>
+</tr>
+
+<tr>
+<td class="org-left">Counts of people crossing mid-block, away from crossings</td>
+<td class="org-left">Size of the jaywalking effect the model leaves out</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Turning counts are the highest priority: they are what is needed to make the traffic results
+credible.
+</p>
+</div>
+</div>
+<div id="outline-container-org49b2f6c" class="outline-2">
+<h2 id="org49b2f6c"><span class="section-number-2">7.</span> What else the model could test</h2>
+<div class="outline-text-2" id="text-7">
+<p>
+Because the street network, the demand and the scenarios are kept separate, other proposals can be
+added as further scenarios and compared against the same baseline, for example:
+</p>
+
+<ul class="org-ul">
+<li>different crossing positions or signal timings;</li>
+<li>narrowing 100 Feet Road once the flyover opens;</li>
+<li>footpath widening or removal of obstructions;</li>
+<li>a metro station, represented by the crowds walking to and from its exits and an assumed shift
+of trips from cars and two-wheelers.</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org22bc830" class="outline-2">
+<h2 id="org22bc830"><span class="section-number-2">8.</span> Data sources</h2>
+<div class="outline-text-2" id="text-8">
+<ul class="org-ul">
+<li>Street network: © OpenStreetMap contributors, Open Database Licence.</li>
+<li>Bus timetable: unofficial BMTC GTFS feed compiled from the Namma BMTC app, Open Database Licence.</li>
+<li>Vehicle mix and flyover diversion: origin–destination and toll analysis for the
+Indiranagar–Silk Board corridor.</li>
+<li>Crossing gaps, places people cross to reach, and bus stops: this study.</li>
+<li>Simulation software: SUMO (Simulation of Urban MObility), Eclipse Foundation, open source.</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+Madiwala loop SUMO simulation &middot; November 2026
+</div>
+</body>
+</html>

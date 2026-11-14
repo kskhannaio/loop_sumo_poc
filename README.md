@@ -9,6 +9,9 @@ Sarjapura Road (C–A)**, for the weekday morning peak. It compares three scenar
 | `trial_crossings` | 8 signalised mid-block crossings at the study's proposed positions |
 | `flyover_opened` | Trial crossings + ~53% of corridor traffic moved to the elevated road (OD/toll study) |
 
+**Plain-language overview** (for planners): [`doc/simulation-overview.org`](doc/simulation-overview.org), also as a web page
+(`doc/index.html`, see *Overview document* below) and PDF.
+
 Results: `report/REPORT.md` (tables + charts), `out/metrics/*.csv`, and `report/results.geojson` (per-edge
 speed/delay/volume and the crossing points, ready for the website).
 
@@ -85,3 +88,14 @@ All live in `config/assumptions.json`; the key ones:
 - No jaywalking: people only cross at modelled crossings; real mid-block crossing through traffic gaps is not represented.
 - Volumes and signal timings are uncalibrated; read results as scenario differences, not forecasts.
 - One seed per scenario; vary `time.seed` and re-run before trusting small differences.
+
+## Overview document
+`doc/simulation-overview.org` is the single source for the non-technical overview.
+```sh
+cd doc
+emacs --batch -l export.el -f overview-html   # -> doc/index.html (+ style.css), images from ../report/
+emacs --batch -l export.el -f overview-pdf    # -> doc/simulation-overview.pdf (needs a LaTeX install)
+```
+To publish the web page: GitHub repo -> Settings -> Pages -> deploy from branch `main`, folder `/ (root)`;
+it is then at `https://<user>.github.io/<repo>/doc/`.
+
