@@ -5,3 +5,8 @@ net/*.net.xml
 net/trial_tls.add.xml
 demand/
 out/
+doc/*.tex
+doc/*.log
+doc/*.aux
+doc/*.out
+doc/*.toc
