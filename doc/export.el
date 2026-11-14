@@ -14,5 +14,8 @@
     (with-current-buffer (find-file-noselect (expand-file-name "simulation-overview.org" overview--dir))
       (org-export-to-file 'html (expand-file-name "index.html" overview--dir)))))
 (defun overview-pdf ()
+  ;; drop ulem (strikethrough, unused; not in a basic TeX Live install)
+  (setq org-latex-default-packages-alist
+        (seq-remove (lambda (p) (equal (nth 1 p) "ulem")) org-latex-default-packages-alist))
   (with-current-buffer (find-file-noselect (expand-file-name "simulation-overview.org" overview--dir))
     (org-latex-export-to-pdf)))
