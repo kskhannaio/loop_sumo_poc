@@ -14,5 +14,7 @@ You need QGIS (free): https://qgis.org
 7. Click the pencil again and choose Save.
 8. Email back the file  madiwala_proposals.gpkg  (rename it with your name first if you like).
 
-The grey, teal and blue layers are the study data and are locked. The purple squares are the
-study's own 8 proposed crossings, shown as an example of a finished proposal.
+Everything except your two "Proposed changes" layers is study data and is locked. Tick layers on
+and off in the Layers panel: the crossings study, the flyover contract (ramp wall, footpath
+survey), buses, places of interest and walking distances. The purple squares are the study's own
+8 proposed crossings, shown as an example of a finished proposal.
