@@ -1,0 +1,18 @@
+MADIWALA LOOP - PROPOSING CHANGES
+=================================
+
+You need QGIS (free): https://qgis.org
+
+1. Unzip this folder anywhere. Keep the two files in it together and don't rename them yet.
+2. Double-click  madiwala.qgz  - QGIS opens on the Madiwala loop.
+3. In the Layers panel, click "Proposed changes (points)" (or "(lines)" for things along a road).
+4. Click the pencil (Toggle Editing), then "Add Point Feature" (or "Add Line Feature").
+5. Click on the map where the change goes. A form opens: choose what the change is from the list,
+   add details if they apply, and a short note on why.
+   For lines, click along the road and right-click to finish.
+6. Repeat for each change. Optionally fill in "About this proposal" (open its attribute table).
+7. Click the pencil again and choose Save.
+8. Email back the file  madiwala_proposals.gpkg  (rename it with your name first if you like).
+
+The grey, teal and blue layers are the study data and are locked. The purple squares are the
+study's own 8 proposed crossings, shown as an example of a finished proposal.
