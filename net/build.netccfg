@@ -1,0 +1,36 @@
+<netconvertConfiguration>
+  <input>
+    <osm-files value="../osm/loop.osm.xml"/>
+  </input>
+  <output>
+    <output-file value="loop.net.xml"/>
+    <output.street-names value="true"/>
+    <output.original-names value="true"/>
+  </output>
+  <processing>
+    <lefthand value="true"/>                     <!-- India drives on the left -->
+    <osm.layer-elevation value="6"/>             <!-- keep underpass / flyover separate from surface roads -->
+    <geometry.remove value="true"/>
+    <roundabouts.guess value="true"/>
+    <ramps.guess value="true"/>
+    <junctions.join value="true"/>
+    <junctions.join-dist value="18"/>
+    <junctions.corner-detail value="5"/>
+    <remove-edges.isolated value="true"/>
+  </processing>
+  <tls_building>
+    <tls.guess-signals value="true"/>
+    <tls.discard-simple value="true"/>
+    <tls.join value="true"/>
+    <tls.default-type value="static"/>
+  </tls_building>
+  <pedestrian>
+    <sidewalks.guess value="true"/>
+    <crossings.guess value="true"/>
+    <walkingareas value="true"/>
+  </pedestrian>
+  <report>
+    <verbose value="false"/>
+    <no-warnings value="true"/>
+  </report>
+</netconvertConfiguration>

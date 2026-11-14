@@ -1,0 +1,12 @@
+<netconvertConfiguration>
+  <!-- second pass: signals at junctions A, B and C (node list computed by scripts/build_net.py), joined per junction -->
+  <input><sumo-net-file value="loop.net.xml"/></input>
+  <output><output-file value="loop.net.xml"/></output>
+  <tls_building>
+    <tls.join value="true"/>
+    <tls.join-dist value="45"/>
+    <tls.default-type value="static"/>
+    <tls.cycle.time value="120"/>
+  </tls_building>
+  <report><no-warnings value="true"/></report>
+</netconvertConfiguration>
