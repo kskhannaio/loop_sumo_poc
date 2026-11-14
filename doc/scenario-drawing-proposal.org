@@ -1,0 +1,202 @@
+#+TITLE: Drawing Scenarios on a Map
+#+SUBTITLE: Proposal: let planners test street changes in the Madiwala loop simulation without touching code
+#+DATE: November 2026
+#+OPTIONS: toc:t num:t author:nil
+#+LANGUAGE: en
+#+LATEX_CLASS: article
+#+LATEX_CLASS_OPTIONS: [11pt,a4paper]
+#+LATEX_HEADER: \usepackage[margin=2.2cm]{geometry}
+#+LATEX_HEADER: \usepackage{parskip}
+#+LATEX_HEADER: \usepackage{booktabs}
+#+LATEX_HEADER: \usepackage{tabularx}
+#+LATEX_HEADER: \usepackage{array}
+#+LATEX_HEADER: \renewcommand{\arraystretch}{1.25}
+#+LATEX_HEADER: \AtBeginDocument{\hypersetup{hidelinks}}
+
+* In short
+
+Today, testing a new idea in the Madiwala loop simulation means editing code. This proposal lets a
+planner test a change by *drawing it on a map* in a GIS tool they already use: a dot for a new
+crossing, a line for a closed lane or a wider footpath. The simulation reads the drawing, builds
+the changed street, runs the morning peak, and returns a page comparing the result with today.
+
+#+begin_quote
+Draw what you would change. Get back what it does for people walking, for traffic and for buses.
+#+end_quote
+
+Three principles guide the design:
+
+1. *The baseline is never edited.* Every drawing is a named scenario layered on top of today's
+   streets, so every result is a fair comparison with the same reference.
+2. *Drawings, not settings.* Anything with a location is drawn; only a handful of scenario-wide
+   choices (such as overall traffic level) are typed in.
+3. *Honest feedback.* The tool checks drawings before running, and the results say how confident
+   they are.
+
+* What it looks like for a planner
+
+1. *Open the project.* A ready-made QGIS project shows the loop, today's crossings, bus stops and
+   the places people cross to reach, plus an empty "changes" layer for each kind of intervention.
+2. *Start a scenario.* Save a copy of the scenario template under a new name, for example
+   /Crossing at Ayyappa Temple/, and add a one-line description.
+3. *Draw the changes.* Place a point, draw a line, and choose its details from drop-down lists
+   (for example: signal cycle 60, 75 or 90 seconds). Nothing needs to be typed precisely; drawings
+   snap to the nearest road.
+4. *Run.* Press /Run simulation/ in QGIS. A quick run (about 2 minutes) gives a first impression;
+   a full run (about 15 minutes) gives the numbers to report.
+5. *Read the result.* A comparison page opens: a map of the changes, a short plain-language
+   summary, the key figures against today, and any warnings.
+
+#+CAPTION: Example result summary (illustrative).
+#+begin_example
+Crossing at Ayyappa Temple  (full run, compared with today)
+  People crossing Hosur Road     98 s faster on average, 140 m less walking
+  Hosur Road traffic, B to C     +35 s per vehicle; queue up to 60 m at the new crossing
+  Buses                          no clear change
+  Confidence                     pedestrians: robust; traffic: indicative
+#+end_example
+
+* What can be drawn
+
+** On the map
+
+#+ATTR_LATEX: :environment tabularx :width \textwidth :align >{\raggedright}p{2.6cm}>{\raggedright}p{2.2cm}>{\raggedright}p{3.4cm}>{\raggedright\arraybackslash}X :font \small
+| Change                     | Draw as                    | Details chosen from lists                       | What the model does                                         |
+|----------------------------+----------------------------+-------------------------------------------------+-------------------------------------------------------------|
+| Signalised crossing        | Point on the road          | Signal cycle, pedestrian green time             | Adds a crossing over both carriageways with its own signal  |
+| Zebra crossing             | Point on the road          | none                                            | Adds an unsignalised crossing where vehicles must give way  |
+| Remove a crossing          | Point on an existing one   | none                                            | Removes it, for example to test closing a median gap        |
+| Close lanes / road diet    | Line along a road          | Lanes to remove, direction                      | Narrows the road for vehicles over that stretch             |
+| Footpath widening or new footpath | Line along a road   | New width                                       | Gives people more room; can create a footpath where none exists |
+| Pedestrianise a street     | Line along a street        | Hours closed to vehicles                        | Closes the street to vehicles, keeps it open to people      |
+| Ban a turn                 | Point at a junction        | From road, to road (picked from the roads there) | Removes that turning movement                               |
+| Signal timing at A, B, C   | Point at the junction      | Cycle length, pedestrian green                  | Replaces the assumed timings at that junction               |
+| Move or add a bus stop     | Point beside the road      | Routes stopping there                           | Buses stop there; their passengers walk from there          |
+| New place people walk to   | Point or area              | Type, people per hour                           | Adds people walking to and from it, e.g. a school, a metro exit |
+
+** Scenario-wide settings
+
+A short form attached to each scenario:
+
+#+ATTR_LATEX: :environment tabularx :width \textwidth :align lX :font \small
+| Setting          | Choices                                                   |
+|------------------+-----------------------------------------------------------|
+| Name and description | free text                                             |
+| Traffic level    | today, -10%, -20%, -30%, +10%                             |
+| Flyover          | closed (today), open (about half of corridor traffic moves onto it) |
+| Run type         | quick (first impression) or full (numbers to report)      |
+
+** Not in the first version
+
+- *New roads or new junctions.* These need careful network editing and are better done by the
+  modeller on request.
+- *Changes in behaviour*, such as people choosing to walk instead of drive. The model cannot
+  predict these; they can be approximated with the traffic level setting.
+- *Jaywalking.* The model sends people only to crossings, so fences, medians and barriers that
+  stop informal crossing cannot be tested yet.
+
+* Checks before a run
+
+Before anything runs, the drawings are checked and the planner gets a list of problems in plain
+language. Errors stop the run; warnings let it continue.
+
+#+ATTR_LATEX: :environment tabularx :width \textwidth :align Xl :font \small
+| Check                                                  | Type    |
+|--------------------------------------------------------+---------|
+| Drawing is more than 15 m from any road                | Error   |
+| Crossing is on 100 Feet Road between 45 m and 225 m from A (flyover ramp wall) | Error |
+| Crossing is on the flyover or underpass rather than the street | Error |
+| Crossing is less than 30 m from a junction or another crossing | Warning |
+| Lane closure leaves a road with no lanes in one direction | Error   |
+| Turn ban removes the only way out of a street          | Error   |
+| Pedestrian green is too short to cross at walking pace | Warning |
+
+* What comes back
+
+Each run produces a page in the same style as the project overview:
+
+- *A map* of the drawn changes over today's streets, coloured by vehicle speed.
+- *A plain-language summary* of the main effects, as in the example above.
+- *Key figures compared with today:* pedestrian trip time and detour by road, vehicle travel time
+  and queues by road and direction, bus delay.
+- *Confidence labels.* Each scenario is run several times with different random variation. A
+  difference is labelled /clear/ only if it holds across runs; otherwise /could be chance/.
+- *Warnings* from the checks, and a reminder of what the model leaves out.
+
+All scenarios and their results are kept, so a set of options can be compared side by side.
+
+* Which tool to draw in
+
+#+ATTR_LATEX: :environment tabularx :width \textwidth :align >{\raggedright}p{1.8cm}>{\raggedright}p{3cm}>{\raggedright}p{4.6cm}>{\raggedright\arraybackslash}X :font \small
+| Tool       | Suits                                  | Strengths                                                     | Limits                                          |
+|------------+----------------------------------------+---------------------------------------------------------------+-------------------------------------------------|
+| QGIS       | Planners who use GIS (recommended)     | Drop-down lists, snapping, styled layers, a /Run/ button inside QGIS, free | Needs installing; the project file must be set up once |
+| geojson.io | Occasional users, quick sketches       | Runs in the browser, nothing to install                       | Details are typed, not picked from lists, so more errors are caught at the check stage |
+
+Both produce the same scenario file, so a sketch made in geojson.io can be finished in QGIS.
+
+* Where the simulation runs
+
+#+ATTR_LATEX: :environment tabularx :width \textwidth :align >{\raggedright}p{3.2cm}>{\raggedright}p{6.5cm}>{\raggedright\arraybackslash}X :font \small
+| Option                     | How a run starts                                     | Good for                          |
+|----------------------------+------------------------------------------------------+-----------------------------------|
+| On the planner's computer  | /Run simulation/ button in QGIS                      | One or two people, fast iteration |
+| Online (GitHub)            | Save the scenario file to the shared project; the run starts automatically and the result page is published | A team, a record of every option, nothing to install beyond QGIS |
+
+Recommendation: start on one computer, add the online option once more than a couple of people are
+drawing scenarios.
+
+* Building it
+
+#+ATTR_LATEX: :environment tabularx :width \textwidth :align l>{\raggedright}p{9.5cm}>{\raggedright\arraybackslash}X :font \small
+| Phase | What                                                                                   | Outcome                                       |
+|-------+----------------------------------------------------------------------------------------+-----------------------------------------------|
+| 1     | Scenario file format, conversion of drawn crossings, checks, comparison page. The existing /trial crossings/ scenario becomes the first example file. | Crossings can be drawn and tested             |
+| 2     | QGIS project with styled layers and drop-down lists; /Run simulation/ button         | Planners can work entirely inside QGIS        |
+| 3     | Lane closures, footpaths, pedestrianisation, turn bans, signal timings, bus stops, new destinations | Full list of changes above                    |
+| 4     | Repeated runs and confidence labels; side-by-side comparison of scenarios            | Results safe to quote                         |
+| 5     | Online running and publishing                                                         | Team use without installs                     |
+
+Phases 1 and 2 give a usable tool for the most important question, where to put crossings. The
+others can follow as needed.
+
+* Decisions needed
+
+1. *Who draws scenarios:* the project team only, or also council officers and community groups?
+   This decides how much checking and guidance the tool needs.
+2. *Local or online* running to start with.
+3. *Which changes matter most* after crossings, to order phase 3.
+4. *Whether the site walk counts come first.* Calibrating traffic volumes before wider use would
+   make the traffic results trustworthy; without it, results should carry the /indicative/ label.
+
+* Appendix: scenario file (for whoever builds it)
+
+One GeoPackage (or GeoJSON) file per scenario, coordinates in WGS 84. Each feature has a ~kind~
+and the attributes listed. A ~scenario~ table (or GeoJSON top-level properties) holds the
+scenario-wide settings.
+
+#+ATTR_LATEX: :environment tabularx :width \textwidth :align >{\raggedright}p{2.6cm}>{\raggedright}p{1.9cm}>{\raggedright}p{4cm}>{\raggedright\arraybackslash}X :font \small
+| kind              | Geometry     | Attributes                                         | Implementation                                                         |
+|-------------------+--------------+----------------------------------------------------+------------------------------------------------------------------------|
+| ~crossing_signal~ | Point        | ~cycle_s~, ~ped_green_s~                           | Split both carriageways, join, guess crossing, fixed-time tlLogic (as ~make_scenarios.py~) |
+| ~crossing_zebra~  | Point        | none                                               | As above, priority junction, crossing with pedestrian priority         |
+| ~crossing_remove~ | Point        | none                                               | Delete nearest crossing at that node                                    |
+| ~lane_close~      | LineString   | ~lanes~, ~direction~                               | Disallow passenger classes on outer lanes of matched edges             |
+| ~footpath~        | LineString   | ~width_m~                                          | Set or add sidewalk lane width on matched edges                        |
+| ~pedestrianise~   | LineString   | ~hours~                                            | Disallow vehicles on matched edges (time-limited via rerouters)        |
+| ~turn_ban~        | Point        | ~from_road~, ~to_road~                             | Remove connections between matched edges                               |
+| ~signal_timing~   | Point        | ~junction~ (A/B/C), ~cycle_s~, ~ped_green_s~       | Override tlLogic for that junction                                     |
+| ~bus_stop~        | Point        | ~routes~                                           | busStop on the matched lane; reassign stops of those routes            |
+| ~destination~     | Point/Polygon | ~type~, ~people_per_h~                            | Add pedestrian generator in the demand step                            |
+
+#+ATTR_LATEX: :environment tabularx :width \textwidth :align >{\raggedright}p{3cm}>{\raggedright}p{4.2cm}>{\raggedright\arraybackslash}X :font \small
+| Scenario setting  | Values                                     | Maps to                                         |
+|-------------------+--------------------------------------------+-------------------------------------------------|
+| ~name~, ~description~ | text                                   | Report title                                    |
+| ~traffic_level~   | -0.3 … +0.1                                | Scales ~od_peak_veh_per_hour~                   |
+| ~flyover_open~    | true / false                               | Applies ~flyover_opened.divert_share~           |
+| ~run_type~        | ~quick~ / ~full~                           | Quick: shorter window, 1 seed; full: 08:00–09:00, 5 seeds |
+
+Matching drawings to the network uses the same snapping as the existing demand step (nearest lane
+within 15 m, matching direction for one-way carriageways). Checks run on the matched result, so a
+drawing is judged by what it actually changes in the model.
