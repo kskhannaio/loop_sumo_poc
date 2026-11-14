@@ -227,8 +227,8 @@ label(catch, '"label"', 8, '#495057')
 lp = catch.labeling().settings(); lp.placement = Qgis.LabelPlacement.Line; catch.setLabeling(QgsVectorLayerSimpleLabeling(lp))  # on the ring
 poi = load('places_of_interest'); poi.setName('Places of interest (shops, clinics, schools ...)')
 POI = ['Commercial', 'Healthcare', 'Institutional', 'Recreational', 'Public amenities', 'Religious', 'Private buses']
-categorized(poi, 'category', POI, ['#adb5bd', '#e03131', '#1c7ed6', '#2f9e44', '#7048e8', '#f08c00', '#0c8599'], size=1.6)
-label(poi, '"name"', 6.5, '#495057', max_scale=3000)
+categorized(poi, 'category', POI, ['#495057', '#e03131', '#1c7ed6', '#2f9e44', '#7048e8', '#f08c00', '#0c8599'], size=2.2, stroke='white', stroke_w=0.2)
+label(poi, '"name"', 6.5, '#343a40', max_scale=4000)
 extra = [desire, ticks, routes, wall, zones, survey, fpw, uc, catch, poi]
 for lyr in (ex, roads, junc, xing, gaps, gen, bus, *extra): lyr.setReadOnly(True)
 
@@ -238,7 +238,7 @@ proj.addMapLayer(osm, False)
 
 # layer tree: proposals on top, background at the bottom
 root = proj.layerTreeRoot()
-hidden = {desire, routes, fpw, poi, ticks}                 # available but switched off, to keep the map readable
+hidden = {desire, routes, fpw, ticks}                 # available but switched off, to keep the map readable
 for title, layers, expanded in (('Your proposals - draw here', [pts, lines, about], True),
                                 ('Example scenario', [ex], False),
                                 ('Crossings study (locked)', [junc, xing, gen, gaps, desire, ticks], True),
@@ -268,7 +268,7 @@ for lyr in proj.mapLayers().values():
 proj.setSnappingConfig(sc)
 
 # open zoomed on the loop
-ext = roads.extent(); ext.grow(0.0025)
+ext = catch.extent(); ext.grow(0.0003)            # the whole 500 m walking area
 proj.viewSettings().setDefaultViewExtent(QgsReferencedRectangle(ext, WGS84))
 
 proj.writeEntryBool('Paths', '/Absolute', False)           # find the .gpkg next to the project, wherever unzipped
