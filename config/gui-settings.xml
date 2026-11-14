@@ -1,0 +1,34 @@
+<!-- sumo-gui view for the Madiwala loop: light background, grey roads, pale footpaths, vehicles coloured by type.
+     Two-wheelers orange, cars blue, autos green, goods/trucks brown, buses red, people magenta. -->
+<viewsettings>
+  <scheme name="madiwala">
+    <opengl antialiase="1"/>
+    <background backgroundColor="246,244,238" showGrid="0"/>
+    <edges laneEdgeMode="0" laneShowBorders="1" showLinkDecals="1" showLinkRules="1" showRails="1" showSublanes="0"
+           edgeName_show="1" edgeName_size="60" edgeName_color="60,60,60" streetName_show="1" streetName_size="70" streetName_color="40,40,40">
+      <colorScheme name="uniform">
+        <entry color="125,125,130" name="road"/>
+        <entry color="214,208,196" name="sidewalk"/>
+        <entry color="192,66,44" name="bike lane"/>
+        <entry color="190,215,170" name="green verge"/>
+        <entry color="150,200,200" name="waterway"/>
+        <entry color="0,0,0" name="railway"/>
+        <entry color="25,25,25" name="rails on road"/>
+        <entry color="160,160,165" name="no passenger"/>
+        <entry color="255,0,0" name="closed"/>
+        <entry color="100,149,237" name="connector"/>
+        <entry color="200,200,200" name="forbidden"/>
+      </colorScheme>
+    </edges>
+    <vehicles vehicleMode="0" vehicleQuality="2" showBlinker="1" vehicle_minSize="1" vehicle_exaggeration="1.6" vehicle_constantSize="0">
+      <colorScheme name="given vehicle/type/route color"><entry color="255,255,0" name="default"/></colorScheme>
+    </vehicles>
+    <persons personMode="0" personQuality="2" person_minSize="1" person_exaggeration="2.5" person_constantSize="0">
+      <colorScheme name="given person/type color"><entry color="200,0,200" name="default"/></colorScheme>
+    </persons>
+    <junctions junctionMode="0" drawShape="1" drawCrossingsAndWalkingareas="1" junctionName_show="0">
+      <colorScheme name="uniform"><entry color="125,125,130"/><entry color="214,208,196" name="waterway"/></colorScheme>
+    </junctions>
+    <additionals addMode="0" add_minSize="1" add_exaggeration="1.5"/>
+  </scheme>
+</viewsettings>
