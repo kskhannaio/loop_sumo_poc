@@ -22,7 +22,6 @@
     <tls.guess-signals value="true"/>
     <tls.discard-simple value="true"/>
     <tls.join value="true"/>
-    <tls.default-type value="static"/>
   </tls_building>
   <pedestrian>
     <sidewalks.guess value="true"/>

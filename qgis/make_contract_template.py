@@ -12,19 +12,19 @@ the loop south to Bommanahalli):
 make_template.py and its zip are not changed.
 
     python3 qgis/make_template.py                 # base template, if not built yet
-    .venv/bin/python qgis/contract/register.py    # fit every sheet to OpenStreetMap
-    .venv/bin/python qgis/contract/extract.py     # extract everything
+    python main.py   (in the corridor_pdf_pipeline repo)    # fit every sheet to OpenStreetMap
+    python main.py --from extract   (corridor_pdf_pipeline repo)     # extract everything
     python3 qgis/make_contract_template.py        # system Python with PyQGIS
 """
 import json, os, shutil, sys, zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 BASE = os.path.join(HERE, 'madiwala_proposals')
-SRC = os.path.join(HERE, 'contract', 'out')
+SRC = os.environ.get('PIPELINE_OUT', os.path.join(HERE, '..', '..', 'corridor_pdf_pipeline', 'out'))   # the PDF pipeline repo's output
 PKG = os.path.join(HERE, 'madiwala_contract')
 ZIP = os.path.join(HERE, 'madiwala_contract.zip')
 for need, how in ((os.path.join(BASE, 'madiwala.qgz'), 'python3 qgis/make_template.py'),
-                  (os.path.join(SRC, 'contract_structures.geojson'), '.venv/bin/python qgis/contract/extract.py')):
+                  (os.path.join(SRC, 'contract_structures.geojson'), 'python main.py --from extract   (corridor_pdf_pipeline repo)')):
     if not os.path.exists(need): sys.exit(f'missing {need} - run: {how}')
 
 from osgeo import gdal
@@ -99,7 +99,8 @@ STYLE = {
 struct = load('contract_structures', 'Planned and existing structures (from the contract drawings)')
 struct.setRenderer(QgsCategorizedSymbolRenderer('layer', [QgsRendererCategory(k, fill_symbol(struct, c, o, h), l)
                                                          for k, (l, c, o, h) in STYLE.items()]))
-struct.setMapTipTemplate('<strong>[% "what" %]</strong><br>About [% format_number("area_m2", 0) %] m²<br>' + SOURCE)
+struct.setMapTipTemplate('<strong>[% "what" %]</strong><br>About [% format_number("area_m2", 0) %] m²<br>'
+                         + '[% if("name_confidence" is not null, \'' + SMALL + 'Name is a best-guess reading (confidence: \' || "name_confidence" || \'): \' || "name_basis" || \'</span><br>\', \'\') %]' + SOURCE)
 struct.setDisplayExpression('"what"')
 
 labels = load('contract_labels', 'Labels from the contract drawings')
@@ -107,7 +108,8 @@ m = QgsSimpleMarkerSymbolLayer(Qgis.MarkerShape.Circle, 1.4); m.setColor(QColor(
 labels.setRenderer(QgsSingleSymbolRenderer(QgsMarkerSymbol([m])))
 pal = QgsPalLayerSettings(); pal.fieldName = 'label'; pal.setFormat(text_style(8, '#862e9c'))
 labels.setLabeling(QgsVectorLayerSimpleLabeling(pal)); labels.setLabelsEnabled(True)
-labels.setMapTipTemplate('<strong>[% "label" %]</strong><br>' + SMALL + 'Text on the contract drawings ([% "source" %])</span>')
+labels.setMapTipTemplate('<strong>[% "label" %]</strong><br>' + SMALL + 'Text on the contract drawings ([% "source" %])'
+                         + '[% if("placed" is not null, \'. Placed \' || "placed", \'\') %]</span>')
 
 # full drawing data, in the drawing's own colours
 lines = load('drawing_lines', 'All drawn lines (drawing colours)')

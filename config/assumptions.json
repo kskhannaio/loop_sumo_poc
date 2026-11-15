@@ -11,13 +11,34 @@
     "lateral_resolution_m": 0.8
   },
   "signals": {
-    "_tag": "ASSUMED - replace with timings measured at A, B, C on the walk",
+    "_tag": "ASSUMED - replace with timings measured at A, B, C on the walk. Junction signals are 'actuated': green time follows the queues (between min and max green), as a stand-in for police-managed junctions. Set junction_type to 'static' for fixed timings.",
     "junction_cycle_s": 120,
     "junction_yellow_s": 3,
     "junction_min_ped_green_s": 10,
     "midblock_cycle_s": 75,
     "midblock_ped_green_s": 18,
-    "midblock_yellow_s": 3
+    "midblock_yellow_s": 3,
+    "junction_type": "actuated",
+    "junction_min_green_s": 8,
+    "junction_max_green_s": 60
+  },
+  "network": {
+    "_tag": "ASSUMED - corrections to the OpenStreetMap network; confirm on the walk",
+    "lane_overrides": {
+      "_note": "OSM way id -> vehicle lanes. The two slip roads at junction B carry the Inner Ring Road <-> Hosur Road south turns (about 1,150 veh/h each way per the OD study). OSM gives 1 lane (172853384) or no lane count (684917326); one lane at a signal cannot carry that flow, so 2 lanes are assumed.",
+      "684917326": 2,
+      "172853384": 2
+    },
+    "entrance_extensions": {
+      "_note": "OSM way id -> metres added before its first node. The Hosur Road south entrance was 33 m long, so any queue blocked every vehicle entering there; the extension gives queues room to form inside the model.",
+      "688824218": 400
+    },
+    "foot_over_bridges": {
+      "_note": "DATA for position (OpenStreetMap footway bridges and their stairs, osm/footbridges.osm.xml; two span Sarjapura Road on the loop, also shown on the BMRCL survey sheets). ASSUMED: walking speed on stairs, and that each stair foot joins the footpath of the nearest carriageway within connect_within_m.",
+      "include": true,
+      "stairs_speed_mps": 0.5,
+      "connect_within_m": 30
+    }
   },
   "vehicle_mix": {
     "_tag": "DATA - OD & toll analysis, ADT 2025-26 Indiranagar-Silk Board corridor (buses removed; they come from GTFS)",

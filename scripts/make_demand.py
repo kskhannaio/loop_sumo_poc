@@ -217,6 +217,11 @@ def gateways(net):
         outs = [e for e in roads if [i for i in e.getIncoming() if road(i)]]         # must be reachable
         a = min(ins, key=lambda e: math.dist(e.getFromNode().getCoord(), (xi, yi)))
         b = min(outs, key=lambda e: math.dist(e.getToNode().getCoord(), (xo, yo)))
+        if a_in and math.dist(a.getFromNode().getCoord(), (xi, yi)) >= 5:
+            # the entrance was extended (config network.entrance_extensions): the anchor now lies along the entry edge
+            on = [e for e in entries if e in ins and sumolib.geomhelper.distancePointToPolygon((xi, yi), e.getShape()) < 5]
+            if on:                               # the edge the anchor lies on (closest), not just any entry nearby
+                a = min(on, key=lambda e: sumolib.geomhelper.distancePointToPolygon((xi, yi), e.getShape())); xi, yi = a.getFromNode().getCoord()
         gw[g] = (a if math.dist(a.getFromNode().getCoord(), (xi, yi)) < 60 else None,
                  b if math.dist(b.getToNode().getCoord(), (xo, yo)) < 60 else None)
     return gw

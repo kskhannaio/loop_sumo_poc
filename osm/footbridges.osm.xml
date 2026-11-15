@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="Overpass API 0.7.62.11 87bfad18">
+<note>The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.</note>
+<meta osm_base="2026-11-15T08:22:46Z"/>
+
+  <node id="494271047" lat="12.9217282" lon="77.6165480"/>
+  <node id="2598853033" lat="12.9219164" lon="77.6166966"/>
+  <node id="6518562671" lat="12.9235443" lon="77.6138451"/>
+  <node id="7277381431" lat="12.9282674" lon="77.6187663"/>
+  <node id="7277381432" lat="12.9283279" lon="77.6186035"/>
+  <node id="7277381433" lat="12.9286177" lon="77.6187177"/>
+  <node id="7277381437" lat="12.9296656" lon="77.6157287"/>
+  <node id="7277381438" lat="12.9290891" lon="77.6151426"/>
+  <node id="7277381439" lat="12.9292159" lon="77.6154792"/>
+  <node id="7277381440" lat="12.9292839" lon="77.6150742"/>
+  <node id="7277381441" lat="12.9294329" lon="77.6153626"/>
+  <node id="7277381442" lat="12.9297505" lon="77.6154993"/>
+  <node id="7277381445" lat="12.9323712" lon="77.6136634"/>
+  <node id="7277381446" lat="12.9321066" lon="77.6138177"/>
+  <node id="7277381451" lat="12.9319861" lon="77.6135447"/>
+  <node id="7277381453" lat="12.9318935" lon="77.6132992"/>
+  <node id="7277381454" lat="12.9318033" lon="77.6134092"/>
+  <node id="7575043126" lat="12.9320300" lon="77.6134956"/>
+  <node id="7575043127" lat="12.9320910" lon="77.6134274"/>
+  <node id="9911234534" lat="12.9322846" lon="77.6137103"/>
+  <node id="9911234535" lat="12.9322170" lon="77.6137469"/>
+  <node id="10068956775" lat="12.9320631" lon="77.6133859"/>
+  <node id="10068956777" lat="12.9321012" lon="77.6134160"/>
+  <node id="11882716460" lat="12.9285652" lon="77.6188587"/>
+  <node id="13089126451" lat="12.9234407" lon="77.6137869">
+    <tag k="access" v="private"/>
+    <tag k="barrier" v="gate"/>
+  </node>
+  <node id="13089126453" lat="12.9234506" lon="77.6137925"/>
+  <node id="13089126454" lat="12.9235137" lon="77.6138288"/>
+  <way id="779344660">
+    <nd ref="7277381432"/>
+    <nd ref="7277381431"/>
+    <tag k="handrail" v="yes"/>
+    <tag k="highway" v="steps"/>
+    <tag k="ramp" v="no"/>
+  </way>
+  <way id="779344661">
+    <nd ref="7277381433"/>
+    <nd ref="7277381432"/>
+    <tag k="bridge" v="yes"/>
+    <tag k="highway" v="footway"/>
+    <tag k="layer" v="1"/>
+  </way>
+  <way id="779344662">
+    <nd ref="11882716460"/>
+    <nd ref="7277381433"/>
+    <tag k="handrail" v="yes"/>
+    <tag k="highway" v="steps"/>
+    <tag k="ramp" v="no"/>
+  </way>
+  <way id="779344663">
+    <nd ref="7277381440"/>
+    <nd ref="7277381438"/>
+    <tag k="handrail" v="yes"/>
+    <tag k="highway" v="steps"/>
+    <tag k="incline" v="down"/>
+    <tag k="ramp" v="no"/>
+    <tag k="surface" v="metal"/>
+  </way>
+  <way id="779344665">
+    <nd ref="7277381441"/>
+    <nd ref="7277381439"/>
+    <tag k="handrail" v="yes"/>
+    <tag k="highway" v="steps"/>
+    <tag k="incline" v="down"/>
+    <tag k="ramp" v="no"/>
+    <tag k="surface" v="metal"/>
+  </way>
+  <way id="779344666">
+    <nd ref="7277381442"/>
+    <nd ref="7277381441"/>
+    <nd ref="7277381440"/>
+    <tag k="bridge" v="yes"/>
+    <tag k="highway" v="footway"/>
+    <tag k="layer" v="1"/>
+    <tag k="lit" v="yes"/>
+    <tag k="surface" v="metal"/>
+  </way>
+  <way id="779344667">
+    <nd ref="7277381454"/>
+    <nd ref="7277381453"/>
+    <tag k="handrail" v="yes"/>
+    <tag k="highway" v="steps"/>
+    <tag k="incline" v="down"/>
+    <tag k="lit" v="yes"/>
+    <tag k="ramp" v="no"/>
+    <tag k="surface" v="metal"/>
+  </way>
+  <way id="779344668">
+    <nd ref="9911234535"/>
+    <nd ref="9911234534"/>
+    <tag k="bridge" v="yes"/>
+    <tag k="handrail" v="yes"/>
+    <tag k="highway" v="steps"/>
+    <tag k="layer" v="1"/>
+  </way>
+  <way id="779344672">
+    <nd ref="7277381446"/>
+    <nd ref="7277381451"/>
+    <nd ref="7277381454"/>
+    <tag k="bridge" v="yes"/>
+    <tag k="highway" v="footway"/>
+    <tag k="layer" v="1"/>
+  </way>
+  <way id="781192768">
+    <nd ref="7277381437"/>
+    <nd ref="7277381442"/>
+    <tag k="handrail" v="yes"/>
+    <tag k="highway" v="steps"/>
+    <tag k="incline" v="up"/>
+    <tag k="ramp" v="no"/>
+    <tag k="surface" v="metal"/>
+  </way>
+  <way id="781192771">
+    <nd ref="10068956777"/>
+    <nd ref="7575043127"/>
+    <tag k="handrail" v="yes"/>
+    <tag k="highway" v="steps"/>
+  </way>
+  <way id="810218447">
+    <nd ref="7575043126"/>
+    <nd ref="7277381451"/>
+    <tag k="handrail" v="yes"/>
+    <tag k="highway" v="steps"/>
+    <tag k="surface" v="metal"/>
+  </way>
+  <way id="810218448">
+    <nd ref="7575043127"/>
+    <nd ref="7575043126"/>
+    <tag k="bridge" v="yes"/>
+    <tag k="handrail" v="yes"/>
+    <tag k="highway" v="steps"/>
+    <tag k="layer" v="1"/>
+    <tag k="surface" v="metal"/>
+  </way>
+  <way id="1081355455">
+    <nd ref="9911234534"/>
+    <nd ref="7277381445"/>
+    <tag k="handrail" v="yes"/>
+    <tag k="highway" v="steps"/>
+    <tag k="ramp" v="no"/>
+  </way>
+  <way id="1081355456">
+    <nd ref="7277381446"/>
+    <nd ref="9911234535"/>
+    <tag k="handrail" v="yes"/>
+    <tag k="highway" v="steps"/>
+  </way>
+  <way id="1084387549">
+    <nd ref="494271047"/>
+    <nd ref="2598853033"/>
+    <tag k="bicycle" v="no"/>
+    <tag k="bridge" v="yes"/>
+    <tag k="foot" v="yes"/>
+    <tag k="highway" v="footway"/>
+    <tag k="horse" v="no"/>
+    <tag k="layer" v="1"/>
+    <tag k="motor_vehicle" v="no"/>
+  </way>
+  <way id="1099882748">
+    <nd ref="10068956775"/>
+    <nd ref="10068956777"/>
+    <tag k="highway" v="steps"/>
+  </way>
+  <way id="1424117201">
+    <nd ref="13089126454"/>
+    <nd ref="13089126453"/>
+    <tag k="bridge" v="yes"/>
+    <tag k="highway" v="steps"/>
+    <tag k="layer" v="1"/>
+  </way>
+  <way id="1424117202">
+    <nd ref="13089126453"/>
+    <nd ref="13089126451"/>
+    <tag k="highway" v="steps"/>
+  </way>
+  <way id="1424117203">
+    <nd ref="6518562671"/>
+    <nd ref="13089126454"/>
+    <tag k="highway" v="steps"/>
+  </way>
+
+</osm>

@@ -13,6 +13,6 @@ doc/*.toc
 qgis/madiwala_proposals/
 qgis/madiwala_proposals.zip
 qgis/*.gpkg
-qgis/contract/out/
+# (contract drawing extraction moved to the corridor_pdf_pipeline repo)
 qgis/madiwala_contract/
 qgis/madiwala_contract.zip

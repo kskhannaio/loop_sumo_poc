@@ -5,7 +5,6 @@
   <tls_building>
     <tls.join value="true"/>
     <tls.join-dist value="45"/>
-    <tls.default-type value="static"/>
     <tls.cycle.time value="120"/>
   </tls_building>
   <report><no-warnings value="true"/></report>

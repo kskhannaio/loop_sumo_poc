@@ -9,7 +9,7 @@ Writes out/metrics/*.csv and out/metrics/metrics.json:
   buses.csv            bus travel time and delay
 """
 import collections, csv, json, math, os, statistics as stt, xml.etree.ElementTree as ET
-from common import P, SCENARIOS, SIDES, SIDE_NAME, cfg, hhmm, read_net, carriageways
+from common import P, SCENARIOS, SIDES, SIDE_NAME, cfg, hhmm, read_net, carriageways, centrelines, LL2M
 import make_demand as MD
 
 C = cfg(); T = C['time']
@@ -129,6 +129,27 @@ for scn in SCENARIOS:
         for c in net.getTLS(tid).getConnections(): tl_nodes[c[0].getEdge().getToNode().getID()] = label
     agg = collections.Counter()
     for node, n in by_node.items(): agg[tl_nodes.get(node, 'other junctions')] += n
+    # foot over bridges: people entering a bridge edge (OSM footway bridges; ids of the joining footways start '-8')
+    on_edge = collections.Counter()
+    for iv in ET.parse(os.path.join(d, 'edgedata_people.xml')).getroot().findall('interval'):
+        for e in iv.findall('edge'): on_edge[e.get('id')] += float(e.get('entered', 0))
+    bridges = collections.defaultdict(list)
+    for e in net.getEdges():
+        if e.getType() == 'highway.footway' and not e.getID().lstrip('-').startswith('8') and len(e.getID().split('#')[0].lstrip('-')) < 11:
+            bridges[e.getID().lstrip('-').split('#')[0]].append(e)
+    CL = centrelines()
+    for way, es in bridges.items():
+        n = max(sum(on_edge[x.getID()] for x in es if x.getID().lstrip('-') == k) for k in {x.getID().lstrip('-') for x in es})
+        best = None
+        for e in es:                                  # where it spans a loop road: side and distance along it
+            shp = e.getShape(); mx, my = LL2M(net.convertXY2LonLat(*shp[len(shp) // 2]))
+            for side, c in CL.items():
+                for i in range(len(c.pts) - 1):
+                    (ax, ay), (bx, by) = c.pts[i], c.pts[i + 1]; L2 = (bx - ax) ** 2 + (by - ay) ** 2 or 1
+                    t = max(0, min(1, ((mx - ax) * (bx - ax) + (my - ay) * (by - ay)) / L2))
+                    dd = math.dist((mx, my), (ax + t * (bx - ax), ay + t * (by - ay)))
+                    if dd < 25 and (best is None or dd < best[0]): best = (dd, side, c.ch[i] + t * math.sqrt(L2))
+        agg[f"FOB {best[1]}@{round(best[2])}" if best else 'foot bridges off the loop'] += n
     for label, n in sorted(agg.items()): rows_x.append({'scenario': scn, 'crossing': label, 'people_per_h': int(n)})
     # ---- sanity
     st = ET.parse(os.path.join(d, 'stats.xml')).getroot()

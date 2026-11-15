@@ -16,9 +16,9 @@ volumes, pedestrian volumes and signal timings are **assumptions** until the sit
 
 | Scenario | People crossing (trips) | Crossing trip time, s (Δ vs today) | Extra walk, m (Δ) | Time lost walking, s (Δ) | Vehicle delay per trip incl. waiting to enter, s (Δ) | Bus delay per trip, s (Δ) | Vehicles never let in | Teleports | Collisions |
 |---|---|---|---|---|---|---|---|---|---|
-| Today | 2647 | 194.3 (+0.0) | 155.8 (+0.0) | 54.7 (+0.0) | 734.4 (+0.0) | 996.7 (+0.0) | 3855 | 158 | 11 |
-| Trial crossings | 2633 | 123.2 (-71.1) | 70.8 (-85.0) | 45.4 (-9.3) | 656.7 (-77.7) | 776.9 (-219.8) | 3420 | 128 | 20 |
-| Trial + flyover open | 2633 | 119.9 (-74.4) | 70.8 (-85.0) | 42.1 (-12.6) | 332.5 (-401.9) | 342.0 (-654.7) | 576 | 40 | 14 |
+| Today | 2610 | 205.3 (+0.0) | 145.9 (+0.0) | 72.5 (+0.0) | 506.3 (+0.0) | 536.4 (+0.0) | 4160 | 233 | 8 |
+| Trial crossings | 2609 | 146.5 (-58.8) | 95.2 (-50.7) | 51.0 (-21.5) | 683.5 (+177.2) | 1008.0 (+471.6) | 2343 | 134 | 25 |
+| Trial + flyover open | 2609 | 146.8 (-58.5) | 95.0 (-50.9) | 51.8 (-20.7) | 375.3 (-131.0) | 564.6 (+28.2) | 353 | 74 | 14 |
 
 *Vehicles never let in* = demand that could not enter the network before the simulation ended — a sign the assumed volumes exceed what the entries and signals can carry (Madiwala is congested at peak, but the volumes are uncalibrated).
 
@@ -27,111 +27,120 @@ volumes, pedestrian volumes and signal timings are **assumptions** until the sit
 ### People crossing each road
 | Scenario | Road | Trips | Trip time mean s | p85 s | Time lost s | Walked m | Straight-line m | Extra m | Detour factor (median) |
 |---|---|---|---|---|---|---|---|---|---|
-| Today | 100 Feet Road | 840 | 81.8 | 131.0 | 26.8 | 75.9 | 33.9 | 41.9 | 1.55 |
-| Today | Hosur Road | 978 | 285.6 | 488.0 | 68.6 | 298.8 | 39.2 | 259.6 | 5.37 |
-| Today | Sarjapura Road | 829 | 200.7 | 372.0 | 66.7 | 183.3 | 34.5 | 148.8 | 3.12 |
-| Trial crossings | 100 Feet Road | 837 | 84.5 | 129.5 | 33.2 | 70.1 | 34.0 | 36.2 | 1.41 |
-| Trial crossings | Hosur Road | 968 | 165.3 | 212.0 | 52.0 | 155.8 | 39.1 | 116.7 | 2.71 |
-| Trial crossings | Sarjapura Road | 828 | 113.0 | 168.5 | 50.0 | 86.8 | 34.5 | 52.3 | 2.36 |
-| Trial + flyover open | 100 Feet Road | 837 | 79.8 | 120.0 | 29.3 | 70.1 | 34.0 | 36.1 | 1.41 |
-| Trial + flyover open | Hosur Road | 968 | 160.3 | 191.0 | 46.3 | 155.8 | 39.1 | 116.7 | 2.71 |
-| Trial + flyover open | Sarjapura Road | 828 | 113.1 | 170.0 | 50.1 | 86.6 | 34.5 | 52.1 | 2.36 |
+| Today | 100 Feet Road | 825 | 103.9 | 164.0 | 49.0 | 75.5 | 33.5 | 42.0 | 1.49 |
+| Today | Hosur Road | 994 | 318.1 | 533.5 | 96.0 | 303.9 | 39.6 | 264.3 | 5.81 |
+| Today | Sarjapura Road | 791 | 169.2 | 277.5 | 67.3 | 140.0 | 34.6 | 105.4 | 2.96 |
+| Trial crossings | 100 Feet Road | 824 | 104.7 | 137.5 | 36.2 | 93.9 | 33.5 | 60.4 | 1.41 |
+| Trial crossings | Hosur Road | 994 | 205.8 | 436.0 | 61.4 | 198.7 | 39.6 | 159.1 | 3.23 |
+| Trial crossings | Sarjapura Road | 791 | 115.7 | 177.5 | 53.1 | 85.7 | 34.6 | 51.1 | 2.35 |
+| Trial + flyover open | 100 Feet Road | 824 | 105.5 | 138.5 | 37.5 | 93.9 | 33.5 | 60.4 | 1.41 |
+| Trial + flyover open | Hosur Road | 994 | 202.2 | 442.5 | 58.5 | 198.3 | 39.6 | 158.7 | 3.21 |
+| Trial + flyover open | Sarjapura Road | 791 | 120.3 | 184.5 | 58.1 | 85.6 | 34.6 | 51.0 | 2.36 |
 
 ### Vehicles along each loop road
 ![vehicles](vehicles.png)
 
 | Scenario | Road | Direction | Length m | Travel time s | Free-flow s | Delay s | Avg speed km/h | Vehicles/h (max edge) |
 |---|---|---|---|---|---|---|---|---|
-| Today | 100 Feet Road | A>B | 480 | 280.4 | 37.5 | 242.9 | 6.2 | 309 |
-| Today | 100 Feet Road | B>A | 476 | 102.8 | 57.1 | 45.7 | 16.7 | 603 |
-| Today | Hosur Road | B>C | 676 | 915.3 | 54.0 | 861.2 | 2.7 | 711 |
-| Today | Hosur Road | C>B | 728 | 192.4 | 49.2 | 143.2 | 13.6 | 2212 |
-| Today | Sarjapura Road | C>A | 798 | 214.0 | 54.8 | 159.3 | 13.4 | 2212 |
-| Today | Sarjapura Road | A>C | 927 | 165.7 | 66.8 | 99.0 | 20.1 | 937 |
-| Trial crossings | 100 Feet Road | A>B | 465 | 442.7 | 36.4 | 406.2 | 3.8 | 832 |
-| Trial crossings | 100 Feet Road | B>A | 462 | 117.4 | 55.4 | 61.9 | 14.2 | 335 |
-| Trial crossings | Hosur Road | B>C | 666 | 617.1 | 53.3 | 563.8 | 3.9 | 1006 |
-| Trial crossings | Hosur Road | C>B | 796 | 265.6 | 57.9 | 207.7 | 10.8 | 2204 |
-| Trial crossings | Sarjapura Road | C>A | 785 | 272.1 | 53.9 | 218.2 | 10.4 | 2204 |
-| Trial crossings | Sarjapura Road | A>C | 915 | 155.3 | 65.9 | 89.4 | 21.2 | 934 |
-| Trial + flyover open | 100 Feet Road | A>B | 465 | 152.4 | 36.4 | 116.0 | 11.0 | 757 |
-| Trial + flyover open | 100 Feet Road | B>A | 462 | 106.6 | 55.4 | 51.2 | 15.6 | 596 |
-| Trial + flyover open | Hosur Road | B>C | 666 | 187.2 | 53.3 | 133.9 | 12.8 | 1777 |
-| Trial + flyover open | Hosur Road | C>B | 796 | 282.4 | 57.9 | 224.6 | 10.1 | 2017 |
-| Trial + flyover open | Sarjapura Road | C>A | 785 | 295.1 | 53.9 | 241.2 | 9.6 | 2017 |
-| Trial + flyover open | Sarjapura Road | A>C | 915 | 155.3 | 65.9 | 89.4 | 21.2 | 796 |
+| Today | 100 Feet Road | A>B | 478 | 2576.9 | 37.4 | 2539.5 | 0.7 | 337 |
+| Today | 100 Feet Road | B>A | 474 | 105.3 | 56.9 | 48.4 | 16.2 | 565 |
+| Today | Hosur Road | B>C | 830 | 5507.9 | 65.2 | 5442.7 | 0.5 | 348 |
+| Today | Hosur Road | C>B | 723 | 137.3 | 48.8 | 88.4 | 19.0 | 2268 |
+| Today | Sarjapura Road | C>A | 750 | 141.2 | 51.3 | 89.9 | 19.1 | 2268 |
+| Today | Sarjapura Road | A>C | 922 | 162.2 | 66.4 | 95.8 | 20.5 | 1538 |
+| Trial crossings | 100 Feet Road | A>B | 463 | 329.6 | 36.3 | 293.2 | 5.1 | 695 |
+| Trial crossings | 100 Feet Road | B>A | 460 | 144.9 | 55.2 | 89.7 | 11.4 | 831 |
+| Trial crossings | Hosur Road | B>C | 820 | 426.8 | 64.4 | 362.4 | 6.9 | 1876 |
+| Trial crossings | Hosur Road | C>B | 790 | 215.4 | 57.5 | 157.9 | 13.2 | 1960 |
+| Trial crossings | Sarjapura Road | C>A | 737 | 203.7 | 50.4 | 153.2 | 13.0 | 1960 |
+| Trial crossings | Sarjapura Road | A>C | 910 | 150.2 | 65.5 | 84.6 | 21.8 | 929 |
+| Trial + flyover open | 100 Feet Road | A>B | 463 | 196.3 | 36.3 | 160.0 | 8.5 | 693 |
+| Trial + flyover open | 100 Feet Road | B>A | 460 | 230.5 | 55.2 | 175.2 | 7.2 | 597 |
+| Trial + flyover open | Hosur Road | B>C | 820 | 454.7 | 64.4 | 390.3 | 6.5 | 1365 |
+| Trial + flyover open | Hosur Road | C>B | 790 | 174.5 | 57.5 | 117.0 | 16.3 | 2282 |
+| Trial + flyover open | Sarjapura Road | C>A | 737 | 203.5 | 50.4 | 153.1 | 13.0 | 2282 |
+| Trial + flyover open | Sarjapura Road | A>C | 910 | 199.9 | 65.5 | 134.4 | 16.4 | 964 |
 
 ### Queues at signals
 ![queues](queues.png)
 
 | Scenario | Signal (A/B/C, X0-X7 = trial crossings) | Approach lanes | Mean queue, worst lane m | Max queue m |
 |---|---|---|---|---|
-| Today | A | 14 | 19.6 | 134.7 |
-| Today | B | 8 | 16.1 | 39.4 |
-| Today | C | 12 | 122.5 | 150.1 |
-| Trial crossings | A | 14 | 17.2 | 76.1 |
-| Trial crossings | B | 8 | 33.8 | 40.4 |
-| Trial crossings | C | 12 | 144.8 | 150.1 |
-| Trial crossings | X0 | 8 | 0.7 | 30.9 |
-| Trial crossings | X1 | 8 | 78.1 | 138.7 |
-| Trial crossings | X2 | 4 | 0.3 | 4.3 |
-| Trial crossings | X3 | 14 | 26.0 | 35.6 |
-| Trial crossings | X4 | 14 | 77.7 | 82.6 |
-| Trial crossings | X5 | 12 | 2.1 | 38.3 |
-| Trial crossings | X6 | 12 | 2.2 | 36.5 |
-| Trial crossings | X7 | 12 | 4.1 | 139.4 |
-| Trial + flyover open | A | 14 | 15.8 | 82.2 |
-| Trial + flyover open | B | 8 | 18.1 | 40.4 |
-| Trial + flyover open | C | 12 | 148.8 | 150.1 |
-| Trial + flyover open | X0 | 8 | 1.3 | 29.1 |
-| Trial + flyover open | X1 | 8 | 31.5 | 138.0 |
-| Trial + flyover open | X2 | 4 | 0.1 | 8.8 |
-| Trial + flyover open | X3 | 14 | 4.0 | 32.1 |
-| Trial + flyover open | X4 | 14 | 34.7 | 82.6 |
-| Trial + flyover open | X5 | 12 | 2.0 | 38.9 |
-| Trial + flyover open | X6 | 12 | 1.3 | 30.7 |
-| Trial + flyover open | X7 | 12 | 4.8 | 139.3 |
+| Today | A | 14 | 29.1 | 149.1 |
+| Today | B | 10 | 141.5 | 150.1 |
+| Today | C | 12 | 44.3 | 149.7 |
+| Trial crossings | A | 14 | 27.1 | 96.5 |
+| Trial crossings | B | 10 | 23.5 | 39.4 |
+| Trial crossings | C | 12 | 142.6 | 150.1 |
+| Trial crossings | X0 | 8 | 2.4 | 40.0 |
+| Trial crossings | X1 | 8 | 58.9 | 140.0 |
+| Trial crossings | X2 | 4 | 0.2 | 4.3 |
+| Trial crossings | X3 | 14 | 12.1 | 29.5 |
+| Trial crossings | X4 | 14 | 68.5 | 73.2 |
+| Trial crossings | X5 | 12 | 4.9 | 83.5 |
+| Trial crossings | X6 | 12 | 1.6 | 41.3 |
+| Trial crossings | X7 | 12 | 3.7 | 139.4 |
+| Trial + flyover open | A | 14 | 62.0 | 150.1 |
+| Trial + flyover open | B | 10 | 19.9 | 39.4 |
+| Trial + flyover open | C | 12 | 105.7 | 150.1 |
+| Trial + flyover open | X0 | 8 | 2.2 | 45.0 |
+| Trial + flyover open | X1 | 8 | 44.6 | 139.5 |
+| Trial + flyover open | X2 | 4 | 0.1 | 4.3 |
+| Trial + flyover open | X3 | 14 | 15.7 | 27.7 |
+| Trial + flyover open | X4 | 14 | 69.2 | 73.2 |
+| Trial + flyover open | X5 | 12 | 21.2 | 149.1 |
+| Trial + flyover open | X6 | 12 | 1.8 | 53.9 |
+| Trial + flyover open | X7 | 12 | 4.1 | 139.3 |
 
 Queue detectors cover the last 150 m of each approach lane, so 150 m means "the queue reaches past the detector".
 
 ### Crossing use (people per hour)
 | Scenario | Crossing | People/h |
 |---|---|---|
-| Today | A | 1191 |
-| Today | B | 1577 |
-| Today | C | 2270 |
-| Today | other junctions | 6367 |
-| Trial crossings | A | 1104 |
-| Trial crossings | B | 537 |
-| Trial crossings | C | 1287 |
-| Trial crossings | X0 | 14 |
-| Trial crossings | X1 | 332 |
-| Trial crossings | X2 | 208 |
-| Trial crossings | X3 | 446 |
-| Trial crossings | X4 | 197 |
-| Trial crossings | X5 | 186 |
-| Trial crossings | X6 | 68 |
-| Trial crossings | X7 | 66 |
-| Trial crossings | other junctions | 5269 |
-| Trial + flyover open | A | 1103 |
-| Trial + flyover open | B | 520 |
-| Trial + flyover open | C | 1294 |
+| Today | A | 1110 |
+| Today | B | 1557 |
+| Today | C | 1160 |
+| Today | FOB BC@612 | 494 |
+| Today | FOB CA@415 | 146 |
+| Today | foot bridges off the loop | 5 |
+| Today | other junctions | 5946 |
+| Trial crossings | A | 1132 |
+| Trial crossings | B | 472 |
+| Trial crossings | C | 981 |
+| Trial crossings | FOB BC@612 | 204 |
+| Trial crossings | FOB CA@415 | 0 |
+| Trial crossings | X0 | 12 |
+| Trial crossings | X1 | 338 |
+| Trial crossings | X2 | 262 |
+| Trial crossings | X3 | 482 |
+| Trial crossings | X4 | 109 |
+| Trial crossings | X5 | 157 |
+| Trial crossings | X6 | 39 |
+| Trial crossings | X7 | 74 |
+| Trial crossings | foot bridges off the loop | 5 |
+| Trial crossings | other junctions | 5083 |
+| Trial + flyover open | A | 1122 |
+| Trial + flyover open | B | 482 |
+| Trial + flyover open | C | 990 |
+| Trial + flyover open | FOB BC@612 | 205 |
+| Trial + flyover open | FOB CA@415 | 0 |
 | Trial + flyover open | X0 | 12 |
-| Trial + flyover open | X1 | 340 |
-| Trial + flyover open | X2 | 211 |
-| Trial + flyover open | X3 | 447 |
-| Trial + flyover open | X4 | 196 |
-| Trial + flyover open | X5 | 183 |
-| Trial + flyover open | X6 | 68 |
-| Trial + flyover open | X7 | 66 |
-| Trial + flyover open | other junctions | 5278 |
+| Trial + flyover open | X1 | 344 |
+| Trial + flyover open | X2 | 246 |
+| Trial + flyover open | X3 | 481 |
+| Trial + flyover open | X4 | 109 |
+| Trial + flyover open | X5 | 156 |
+| Trial + flyover open | X6 | 38 |
+| Trial + flyover open | X7 | 74 |
+| Trial + flyover open | foot bridges off the loop | 5 |
+| Trial + flyover open | other junctions | 5090 |
 
 ### Buses
 | Scenario | Buses (finished) | Trip time in area s | Delay mean s | Delay p85 s |
 |---|---|---|---|---|
-| Today | 176 | 1164.9 | 996.7 | 1926.6 |
-| Trial crossings | 183 | 931.9 | 776.9 | 1087.0 |
-| Trial + flyover open | 186 | 493.1 | 342.0 | 348.6 |
+| Today | 99 | 688.4 | 536.4 | 1163.2 |
+| Trial crossings | 154 | 1161.3 | 1008.0 | 1726.4 |
+| Trial + flyover open | 179 | 721.8 | 564.6 | 1242.3 |
 
 ### Map
 ![map](map.png)
