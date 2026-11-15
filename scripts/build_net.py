@@ -111,6 +111,26 @@ run([BIN('netconvert'), '-c', P('net', 'build.netccfg'), '--osm-files', P('net',
 # junction nodes for A, B and C: unsignalised main-road nodes within the junction's radius joining 3+ road edges
 # (nodes pass 1 already signalised are left alone; re-setting them crashes netconvert)
 RADIUS = {'A': 40, 'B': 40, 'C': 48}
+# Very short approach edges at the main junctions are merged into the junction first. OSM leaves a node a few metres
+# before A and C; netconvert turns that into an approach edge 0.2 m long, and a queue-following signal has its sensor
+# on that edge, sees nothing and cuts every green to the minimum.
+p0 = read_net(P('net', 'pass1.net.xml'))
+joins = ET.Element('nodes')
+for jid, ll in JUNCTIONS.items():
+    x, y = p0.convertLonLat2XY(*ll)
+    for n in p0.getNodes():
+        if math.dist(n.getCoord(), (x, y)) > RADIUS[jid] or len([e for e in n.getIncoming() + n.getOutgoing() if e.allows('passenger')]) < 3: continue
+        for e in n.getIncoming():
+            if e.allows('passenger') and e.getLength() < 12 and e.getPriority() >= 11 and e.getFromNode() is not n:
+                (ax, ay), (bx, by) = n.getCoord()[:2], e.getFromNode().getCoord()[:2]      # without x/y netconvert leaves the merged node unplaced
+                ET.SubElement(joins, 'join', nodes=f"{n.getID()} {e.getFromNode().getID()}", x=f"{ax:.2f}", y=f"{ay:.2f}")
+                patched.append(f"junction {jid}: merged the {e.getLength():.1f} m approach edge {e.getID()} into the junction")
+if len(joins):
+    ET.ElementTree(joins).write(P('net', 'plain', 'short_approach_joins.nod.xml'))
+    os.replace(P('net', 'pass1.net.xml'), P('net', 'pass1_unjoined.net.xml'))
+    run([BIN('netconvert'), '--sumo-net-file', P('net', 'pass1_unjoined.net.xml'), '--node-files', P('net', 'plain', 'short_approach_joins.nod.xml'),
+         '--lefthand', 'true', '--no-warnings', 'true', '--crossings.guess', 'true', '--output-file', P('net', 'pass1.net.xml')] + tls_opts + ped_opts,
+        log=P('out', 'checks', 'netconvert_pass1_joins.log'))
 p1 = read_net(P('net', 'pass1.net.xml'))
 SIGNALISED = C.get('signalised_junctions', list(JUNCTIONS))       # junctions left out get no signal, even if OSM maps one
 tls_nodes, unset = [], []

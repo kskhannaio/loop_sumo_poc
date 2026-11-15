@@ -56,6 +56,12 @@ All assumed numbers (volumes, signal timings, pedestrian rates) are in `config/a
   corridor's main flow. They are assumed to be 2 lanes (`network.lane_overrides`); confirm on the walk.
 - **Signals.** Fixed 120 s plans starved the busy approaches (C gave Hosur Road northbound 44 s). Junction signals are now
   `actuated`, so green follows the queues (`signals.junction_type`).
+- **0.2 m approach edges.** OSM has a node a few metres before junctions A and C, which netconvert turns into an approach
+  edge 0.2 m long. An actuated signal puts its sensor on that edge, sees nothing and cuts every green to the minimum
+  (C passed 325 veh/h). `build_net.py` merges such edges into the junction before the signals are built; the join needs
+  explicit x/y or netconvert leaves the merged node unplaced, and `--crossings.guess` to rebuild its crossings.
+- **Which junctions have signals** is `signals.signalised_junctions`. B is off, following the tender's route map; without a
+  signal the turn from 100 Feet Road cannot merge into Hosur Road southbound. Unresolved.
 - **Foot over bridges.** OSM maps the bridges and their stairs but does not join them to the roads, so netconvert drops them.
   `build_net.py` adds `osm/footbridges.osm.xml` and joins each stair foot to the nearest main carriageway with a short footway.
   Stairs get a slow walking speed (`network.foot_over_bridges`). `metrics.py` reports people using each bridge as `FOB <road>@<m>`.
