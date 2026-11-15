@@ -60,6 +60,13 @@ All assumed numbers (volumes, signal timings, pedestrian rates) are in `config/a
   edge 0.2 m long. An actuated signal puts its sensor on that edge, sees nothing and cuts every green to the minimum
   (C passed 325 veh/h). `build_net.py` merges such edges into the junction before the signals are built; the join needs
   explicit x/y or netconvert leaves the merged node unplaced, and `--crossings.guess` to rebuild its crossings.
+- **Turns across oncoming traffic starve.** On Hosur Road northbound at C the median lane was shared between straight on
+  and the right turn, which netconvert makes permissive. No gaps ever came, and the single-file queue ran 800 m back
+  through the underpass while three lanes stood empty. `signals.turn_only_median_lane_at` makes that lane turn-only with
+  a protected green (`--tls.rebuild`). Applying it at A as well made netconvert split A into three 32 s phases and
+  jammed Sarjapura Road, so it is on at C only. A workaround for lane logic, not a claim about the street.
+- **Seeing a jam without a screen.** `scripts/snapshot.py` draws a still from `sumo --fcd-output`; tables did not show
+  the single-file queue, the picture did at once.
 - **Which junctions have signals** is `signals.signalised_junctions`. B is off, following the tender's route map; without a
   signal the turn from 100 Feet Road cannot merge into Hosur Road southbound. Unresolved.
 - **Foot over bridges.** OSM maps the bridges and their stairs but does not join them to the roads, so netconvert drops them.

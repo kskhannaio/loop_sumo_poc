@@ -143,10 +143,32 @@ for jid, ll in JUNCTIONS.items():
         if jid not in SIGNALISED:
             if near and n.getType().startswith('traffic_light'): unset.append(n.getID())
         elif len(road) >= 3 and main and n.getType() != 'traffic_light' and near: tls_nodes.append(n.getID())
+# turn-only median lane at the signalised junctions (config signals._turn_note): drop the straight-ahead movement from the
+# lane that also turns across oncoming traffic, so netconvert gives that turn a protected green
+con = ET.Element('connections'); turn_lanes = 0
+TURN_AT = [j for j in C.get('turn_only_median_lane_at', SIGNALISED) if j in SIGNALISED]
+for jid in TURN_AT:
+    x, y = p1.convertLonLat2XY(*JUNCTIONS[jid])
+    for n in p1.getNodes():
+        if math.dist(n.getCoord(), (x, y)) > RADIUS[jid] or not (n.getID() in tls_nodes or n.getType().startswith('traffic_light')): continue
+        for e in n.getIncoming():
+            lanes = [l.getIndex() for l in e.getLanes() if l.allows('passenger')]
+            if len(lanes) < 3: continue
+            top = [c for o in e.getOutgoing() for c in e.getConnections(o) if c.getFromLane().getIndex() == lanes[-1]]
+            turns = [c for c in top if c.getDirection() in ('r', 'R', 't', 'T')]          # left-hand traffic: the turn across oncoming traffic
+            straight = [c for c in top if c.getDirection() == 's']
+            if turns and straight:
+                for c in straight:
+                    ET.SubElement(con, 'delete', attrib={'from': e.getID(), 'to': c.getTo().getID(), 'fromLane': str(lanes[-1]), 'toLane': str(c.getToLane().getIndex())})
+                turn_lanes += 1
+ET.ElementTree(con).write(P('net', 'plain', 'turn_lanes.con.xml'))
+if turn_lanes: patched.append(f"turn-only median lane with a protected green on {turn_lanes} approach(es) at junction(s) {', '.join(TURN_AT)}")
 patched.append(f"signals at junctions {', '.join(SIGNALISED)}" + (f"; removed at {len(unset)} node(s) of the others" if unset else ''))
 run([BIN('netconvert'), '-c', P('net', 'tls.netccfg'), '--sumo-net-file', P('net', 'pass1.net.xml'),
      '--output-file', P('net', 'base.net.xml')] + (['--tls.set', ','.join(tls_nodes)] if tls_nodes else [])
-    + (['--tls.unset', ','.join(unset)] if unset else []) + tls_opts,
+    + (['--tls.unset', ','.join(unset)] if unset else [])
+    + (['--connection-files', P('net', 'plain', 'turn_lanes.con.xml'), '--tls.rebuild', 'true',
+        '--tls.left-green.time', str(C.get('protected_turn_green_s', 6))] if turn_lanes else []) + tls_opts,
     log=P('out', 'checks', 'netconvert_pass2.log'))
 
 # ---- checks --------------------------------------------------------------------------------

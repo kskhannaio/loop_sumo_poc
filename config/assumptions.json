@@ -25,7 +25,12 @@
       "A",
       "C"
     ],
-    "_signalised_note": "DATA for A and B (tender route map, page 23: Signal-1 is at junction A, and no signal is drawn at the Madiwala underpass junction B; it is a schematic, so confirm on the walk). ASSUMED for C, which is not on the route map. Junctions not listed here have no signal even where OpenStreetMap maps one."
+    "_signalised_note": "DATA for A and B (tender route map, page 23: Signal-1 is at junction A, and no signal is drawn at the Madiwala underpass junction B; it is a schematic, so confirm on the walk). ASSUMED for C, which is not on the route map. Junctions not listed here have no signal even where OpenStreetMap maps one.",
+    "protected_turn_green_s": 15,
+    "_turn_note": "ASSUMED: at signalised junctions the lane next to the median on an approach of 3 or more lanes is a turn-only lane (right turn and U-turn across oncoming traffic), with its own green of protected_turn_green_s. Without it the model lets those turns go only in gaps in oncoming traffic, which never come at these volumes, and the queue blocks the whole approach. Confirm the real lane use and phases on the walk.",
+    "turn_only_median_lane_at": [
+      "C"
+    ]
   },
   "network": {
     "_tag": "ASSUMED - corrections to the OpenStreetMap network; confirm on the walk",
