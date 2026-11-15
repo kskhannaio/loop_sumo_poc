@@ -204,15 +204,17 @@ story = [
   f". {sum(1 for p in near if not p.get('listed'))} are mapped in OpenStreetMap; {sum(1 for p in near if p.get('listed'))} more come from "
   "business listings (Overture Maps and Foursquare) and have not been checked on the ground. Street vendors and tea stalls are still "
   "missing - the site walk will add them."),
- ('Crossing', 'No safe place to cross between the junctions - on any side',
-  f"All the mapped crossings are at the three junctions. In between are bus stops, St John's Hospital, a mosque and a school that "
-  f"people cross to reach every day. The guidebook asks for a crossing every 80-150 m on streets like these - that's {need} missing "
-  "around the loop. " + ' '.join(f"{n}: {L} m long, no crossing for {lg} m, {nd} missing." for _, n, L, lg, nd in sides) +
+ ('Crossing', 'No street-level crossing between the junctions, on any side',
+  f"All the mapped street-level crossings are at the three junctions. Away from them, the only way across is by foot over bridge, "
+  f"by stairs, near St John's Hospital. In between are bus stops, the hospital, a mosque and a school that people cross to reach "
+  f"every day. The guidebook asks for a crossing every 80-150 m on streets like these. Even counting the bridges, that's {need} "
+  "missing around the loop. " + ' '.join(f"{n}: {L} m long, no crossing for {lg} m, {nd} missing." for _, n, L, lg, nd in sides) +
   f" On 100 Feet Road the flyover ramp wall fills the middle of the road, so new crossings there can only go {feas['from_m']}-{feas['to_m']} m "
   "from the Water Tank junction. The flyover contract adds crossings only at junctions."),
  ('Crossing', 'How we know this',
   "Existing crossings and side streets: OpenStreetMap. Zebras at junction A are mapped; junctions B and C have signals but no mapped "
-  f"crossing on these roads - to check on the walk. Ramp wall ({wall['from']}-{wall['to']} m, {wall['width']} m wide): B-SMILE flyover "
+  f"crossing on these roads - to check on the walk. Foot over bridges: OpenStreetMap and the metro survey sheets; they count as "
+  f"crossing points when measuring the gaps, although stairs rule them out for many people. Ramp wall ({wall['from']}-{wall['to']} m, {wall['width']} m wide): B-SMILE flyover "
   "contract, Schedule A. Crossing spacing of 80-150 m for mixed-use streets: GIZ/MoHUA Tactical Urbanism Guidebook (after IRC 103). "
   "Places people cross to reach: bus stops, side streets and destinations within 80 m of the road."),
  ('Buses', f'A bus every {gap_s} seconds at the busiest stops',
@@ -367,12 +369,12 @@ junc = load('junctions', 'Junctions A, B, C', display='"id" || \' - \' || "name"
 junc.setRenderer(QgsSingleSymbolRenderer(marker('#1d1d1b', 6.5, stroke='#ffffff', stroke_w=0.6)))
 label(junc, '"id"', 9, '#ffffff', placement=Qgis.LabelPlacement.OverPoint, bold=True, buffer=False)
 
-xing = load('existing_crossings', 'Existing crossings (green = marked zebra)', display='"name"',
-            tip='<strong>[% "name" %]</strong><br>[% if("verified", \'Marked zebra crossing\', replace("type", \' in OSM\', \' on the map\') || \' - to check on the walk\') %]'
+xing = load('existing_crossings', 'Existing crossings (green = marked zebra, blue = foot over bridge)', display='"name"',
+            tip='<strong>[% "name" %]</strong><br>[% if("fob", \'Stairs up and over the road. Not step-free.\', if("verified", \'Marked zebra crossing\', replace("type", \' in OSM\', \' on the map\') || \' - to check on the walk\')) %]'
                 f'<br>{SMALL}[% map_get({ROAD_NAME}, "side") %]</span>')
 s = marker('#ffffff', 3.6, stroke='#1d1d1b', stroke_w=0.8)
-s.symbolLayer(0).setDataDefinedProperty(QgsSymbolLayer.Property.FillColor, expr("if(\"verified\", '#2f9e44', '#ffffff')"))
-s.symbolLayer(0).setDataDefinedProperty(QgsSymbolLayer.Property.StrokeColor, expr("if(\"verified\", '#1b7a3a', '#1d1d1b')"))
+s.symbolLayer(0).setDataDefinedProperty(QgsSymbolLayer.Property.FillColor, expr("if(\"fob\", '#74c0fc', if(\"verified\", '#2f9e44', '#ffffff'))"))
+s.symbolLayer(0).setDataDefinedProperty(QgsSymbolLayer.Property.StrokeColor, expr("if(\"fob\", '#1864ab', if(\"verified\", '#1b7a3a', '#1d1d1b'))"))
 xing.setRenderer(QgsSingleSymbolRenderer(s))
 
 gen = load('places_people_cross_to', 'Places people cross the road to reach', display='"name"',

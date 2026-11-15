@@ -57,8 +57,19 @@ proj = QgsProject.instance()
 if not proj.read(os.path.join(PKG, 'madiwala.qgz')): sys.exit('could not open the copied project')
 proj.setTitle('Madiwala loop - study map, proposals and flyover contract drawings')
 
+# one structures layer: the tender's traced structures plus what the pipeline takes from the other sheets (metro survey
+# scans, the plan of the loop, the concept drawing). Each feature keeps its own "source".
+import json
+merged = {'type': 'FeatureCollection', 'features': []}
+for fname in ('contract_structures.geojson', 'metro_station.geojson', 'loop_plan.geojson', 'concept_tunnel.geojson'):
+    path = os.path.join(SRC, fname)
+    if os.path.exists(path): merged['features'] += json.load(open(path))['features']
+for f in merged['features']:
+    for k in ('name', 'name_confidence', 'name_basis', 'part_of', 'length_m'): f['properties'].setdefault(k, None)
+import tempfile
+ALL = os.path.join(tempfile.mkdtemp(), 'all_structures.geojson'); json.dump(merged, open(ALL, 'w'))
 first = True
-for name, src in (('contract_structures', 'contract_structures.geojson'), ('contract_labels', 'contract_labels.geojson'),
+for name, src in (('contract_structures', ALL), ('contract_labels', 'contract_labels.geojson'),
                   ('drawing_lines', 'full_lines.geojsonl'), ('drawing_shapes', 'full_polygons.geojsonl'), ('drawing_text', 'full_text.geojsonl')):
     lyr = QgsVectorLayer(os.path.join(SRC, src), name, 'ogr')
     if not lyr.isValid(): sys.exit(f'cannot read {src}')
@@ -70,8 +81,7 @@ for name, src in (('contract_structures', 'contract_structures.geojson'), ('cont
     first = False
 
 SMALL = '<span style="color:#666;font-size:90%">'
-SOURCE = (SMALL + 'From the B-SMILE elevated-corridor tender drawings ([% "source" %]). Placed on the map by fitting the drawings\' '
-          'roads to OpenStreetMap: about 1-2 m.</span>')
+SOURCE = SMALL + 'Source: [% "source" %]</span>'
 load = lambda name, title: QgsVectorLayer(f'{GPKG}|layername={name}', title, 'ogr')
 def fill_symbol(lyr, color, opacity, hatch=False):
     s = QgsSymbol.defaultSymbol(lyr.geometryType()); sl = s.symbolLayer(0); c = QColor(color)
@@ -91,7 +101,16 @@ STYLE = {
     'existing_flyover': ('Existing flyovers, incl. the Silk Board double-decker', '#74b816', 0.5, False),
     'ejipura_flyover': ('Ejipura flyover approach (under construction)', '#4dabf7', 0.55, False),
     'metro': ('Metro line and stations (elevated)', '#9c36b5', 0.5, False),
-    'metro_tunnel': ('Metro Phase-3A tunnel alignment (underground)', '#d6336c', 0.9, True),
+    'metro_tunnel': ('Entry Ramp 08: ramp from Sarjapura Road into the road tunnel (underground)', '#d6336c', 0.9, True),
+    'tunnel_tube': ('North-South road tunnel: its two tubes (underground)', '#a61e4d', 0.9, True),
+    'tunnel_portal': ('Box the two tunnel tubes run into (portal or cut-and-cover section)', '#e64980', 0.45, False),
+    'tunnel_ramp': ('Tunnel ramps at St John\'s junction, incl. Exit Ramp 01', '#d6336c', 0.45, False),
+    'tunnel_strip': ('Tunnel approach connecting the road tunnel to the Audgodi loop', '#f06595', 0.6, False),
+    'subway': ('Pedestrian subway under Sarjapura Road at the metro station', '#1864ab', 0.7, False),
+    'metro_station': ('Metro Phase-3A stations (from the metro survey sheets)', '#7048e8', 0.6, False),
+    'metro_station_land': ('Land, parking and structures for St John\'s Hospital station', '#b197fc', 0.4, False),
+    'metro_line': ('Metro Phase-3A line, St John\'s Hospital to Jakkasandra', '#5f3dc4', 0.6, False),
+    'metro_structure': ('Metro structure and land at junction A', '#845ef7', 0.5, False),
     'underpass': ('Underpass (existing)', '#868e96', 0.6, False),
     'bmrcl_land': ('BMRCL (metro) land', '#63e6be', 0.45, False),
     'land_acquisition': ('Land to be acquired (land acquisition plan)', '#fab005', 0.6, False),
