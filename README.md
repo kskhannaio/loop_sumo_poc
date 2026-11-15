@@ -12,6 +12,16 @@ Three scenarios run on identical, seeded demand:
 | `trial_crossings` | 8 new signalised mid-block crossings at the study's proposed positions |
 | `flyover_opened` | The trial crossings, with ~53% of corridor traffic moved onto the new flyover |
 
+## What changes
+
+The trial adds 8 signalised crossings between the junctions. Each crosses both directions of traffic.
+
+![The loop today and with the trial crossings](report/before_after_loop.png)
+
+Close-ups at three of the new crossings, drawn to scale from the simulation network:
+
+![Before and after at three new crossings](report/before_after_closeups.png)
+
 ## Results so far
 
 | | Today | Trial crossings | + flyover open |

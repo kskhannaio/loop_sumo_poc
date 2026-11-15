@@ -177,3 +177,6 @@ Rebuild everything with `python run.py` after editing the config.
 """
 open(P('report', 'REPORT.md'), 'w').write(md)
 print('wrote report/REPORT.md + people.png vehicles.png queues.png map.png results.geojson')
+
+import network_figures
+network_figures.main()
