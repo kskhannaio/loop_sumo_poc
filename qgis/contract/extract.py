@@ -1,211 +1,211 @@
-"""Georeference the flyover contract's drawings and extract planned structures as map layers.
+"""Extract everything drawn on the flyover contract's sheets, on the map.
 
-Source: "Ejipura to Silk Board Schedule A B C D F H I.pdf" (B-SMILE tender), General Alignment Drawing
-sheets 1 and 2 (PDF pages 30 and 31), which cover the Madiwala loop. The pages are vector CAD exports.
+Needs qgis/contract/out/georef.json from register.py (one fitted transform per PDF page).
+Source: "Ejipura to Silk Board Schedule A B C D F H I.pdf" (B-SMILE tender), 17 vector CAD sheets at 1:2000:
+topographical survey 1-6 (pages 24-29), general alignment drawing 1-6 (30-35), land acquisition plan 1-5 (36-40).
 
-1. Fit: for each sheet, a similarity transform (scale, rotation, shift) is fitted so that the edges of the
-   drawing's grey at-grade road areas land on road edges from our SUMO network (OpenStreetMap).
-2. Images: each sheet's drawing area is rendered to PNG with a world file in UTM 43N (EPSG:32643).
-3. Layers: planned structures are picked out by the fill colour the drawing uses for them, and labels by
-   their text, and written as GeoJSON (WGS84).
-
-Run with the project venv (needs pymupdf, scipy, shapely):
-    .venv/bin/python qgis/contract/extract.py [path/to/contract.pdf]
-Outputs go to qgis/contract/out/.
+Writes to qgis/contract/out/ (all in WGS84 unless noted):
+  sheets/<set>_<n>.png + .pgw   each sheet's drawing area as an image, world file in UTM 43N (EPSG:32643)
+  full_lines.geojsonl           every stroked line (page, set, sheet, colour, width in metres)
+  full_polygons.geojsonl        every filled shape (fill and outline colour)
+  full_text.geojsonl            every text line (text, rotation for labelling, size in metres)
+  contract_structures.geojson   clean named structures, traced by the colour the drawings use for them
+  contract_labels.geojson       the drawings' labels for those structures
+Run: .venv/bin/python qgis/contract/extract.py [contract.pdf]
 """
-import json, math, cmath, os, sys
-import numpy as np, pymupdf
-from scipy.optimize import minimize
-from scipy.spatial import cKDTree
+import cmath, collections, json, math, os, re, sys
+import numpy as np, pymupdf, pyproj
 from shapely.geometry import Polygon, LineString, mapping
 from shapely.ops import unary_union, transform as shp_transform
-import pyproj
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
-sys.path.insert(0, os.path.join(ROOT, 'scripts'))
-from common import P, sumolib  # noqa: E402
-
 PDF = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, '..', '..', 'docs', 'Ejipura to Silk Board Schedule A B C D F H I.pdf')
-OUT = os.path.join(HERE, 'out'); os.makedirs(OUT, exist_ok=True)
-SHEETS = {30: 'GAD sheet 1 (Sarjapura junction to Madiwala)', 31: 'GAD sheet 2 (St John\'s to Madiwala)'}
-DRAWING_AREA = pymupdf.Rect(102, 57, 786, 1150)        # page area inside the border, above the title block (unrotated pt)
+OUT = os.path.join(HERE, 'out'); os.makedirs(os.path.join(OUT, 'sheets'), exist_ok=True)
+G = json.load(open(os.path.join(OUT, 'georef.json')))
+OFF = G['offset']
+SET_CODE = {'Topographical survey': 'topo', 'General alignment drawing': 'gad', 'Land acquisition plan': 'la'}
+AREA = pymupdf.Rect(102, 57, 786, 1150)        # inside the border, above the title block (unrotated points)
 DPI = 220
-NOMINAL = 0.7056                                        # 1:2000 on paper, metres per PDF point
-
-net = sumolib.net.readNet(P('net', 'base.net.xml'))
-OFF = net.getLocationOffset()                           # SUMO xy = UTM 43N + offset
-J = {'A': (77.620965, 12.927461), 'B': (77.618093, 12.924584), 'C': (77.614971, 12.929885)}
-JX = {k: complex(*net.convertLonLat2XY(*v)) for k, v in J.items()}
 to_ll = pyproj.Transformer.from_crs(32643, 4326, always_xy=True).transform
 doc = pymupdf.open(PDF)
 key = lambda c: tuple(round(v, 2) for v in c) if c else None
+hexc = lambda c: '#%02x%02x%02x' % tuple(round(v * 255) for v in c) if c else None
 
-# ------------------------------------------------------------------ 1. fit each sheet to the network
-outline = []
-for e in net.getEdges():
-    veh = [l for l in e.getLanes() if l.allows('passenger') or l.allows('bus')]
-    for l in (veh[0], veh[-1]) if veh else ():
-        s, w = l.getShape(), l.getWidth() / 2
-        for (x1, y1), (x2, y2) in zip(s, s[1:]):
-            L = math.hypot(x2 - x1, y2 - y1)
-            if not L: continue
-            nx, ny = -(y2 - y1) / L, (x2 - x1) / L
-            for t in np.arange(0, L, 1.0):
-                for sg in (1, -1): outline.append((x1 + (x2 - x1) * t / L + sg * nx * w, y1 + (y2 - y1) * t / L + sg * ny * w))
-tree = cKDTree(np.array(outline))
+def transform(pno):
+    p = G['pages'][str(pno)]['params']
+    return math.exp(p[0]) * cmath.exp(1j * p[1]), complex(p[2], p[3])
 
-def road_edges(page):
-    z = []
-    for d in page.get_drawings():
-        if key(d.get('fill')) != (0.5, 0.5, 0.5): continue
-        for it in d['items']:
-            if it[0] == 'l':
-                a, b = it[1], it[2]; L = max(math.hypot(b.x - a.x, b.y - a.y), 1e-9)
-                z += [complex(a.x + (b.x - a.x) * t / L, -(a.y + (b.y - a.y) * t / L)) for t in np.arange(0, L, 1.0)]
-            elif it[0] == 'c': z += [complex(q.x, -q.y) for q in it[1:]]
-    return np.array(z)
+def utm(a, b, x, y):
+    w = a * complex(x, -y) + b
+    return (w.real - OFF[0], w.imag - OFF[1])
 
-sim = lambda p, z: np.exp(p[0]) * cmath.exp(1j * p[1]) * z + complex(p[2], p[3])
-def cost(p, z, cap):
-    w = sim(p, z); d, _ = tree.query(np.c_[w.real, w.imag], distance_upper_bound=cap)
-    return float(np.mean(np.minimum(d, cap) ** 2))
-def start(z1, w1, z2, w2):
-    a = (w2 - w1) / (z2 - z1); b = w1 - a * z1
-    return [math.log(abs(a)), cmath.phase(a), b.real, b.imag]
-
-STARTS = {   # rough first guesses read off the sheets: (page point, map point) pairs
-    30: (complex(485, -292), JX['A'], complex(315, -850), JX['B']),
-    31: (complex(455, -1030), JX['B'], complex(455, -1030 + abs(JX['C'] - JX['B']) / NOMINAL), JX['C']),
-}
-fits, report = {}, []
-for pno in SHEETS:
-    z = road_edges(doc[pno - 1]); p = start(*STARTS[pno])
-    for cap in (40, 20, 10, 6):
-        p = minimize(cost, p, args=(z, cap), method='Nelder-Mead', options={'xatol': 1e-6, 'fatol': 1e-6, 'maxiter': 4000}).x
-    w = sim(p, z); d, _ = tree.query(np.c_[w.real, w.imag])
-    fits[pno] = list(map(float, p))
-    report.append(f'page {pno}: scale {math.exp(p[0]):.4f} m/pt (1:2000 = {NOMINAL}), rotation {math.degrees(p[1]):.2f} deg, '
-                  f'median road-edge distance {np.median(d):.2f} m, {np.mean(d < 3) * 100:.0f}% within 3 m')
-json.dump({'fits': fits, 'note': 'sumo_xy = exp(s) * e^(i*rot) * (x - i*y) + (tx + i*ty); x, y in unrotated PDF points; '
-           'UTM 43N = sumo_xy - offset', 'offset': OFF}, open(os.path.join(OUT, 'georef.json'), 'w'), indent=1)
-
-def page_to_ll(pno):
-    p = fits[pno]; a = math.exp(p[0]) * cmath.exp(1j * p[1]); b = complex(p[2], p[3])
-    def f(x, y):
-        w = a * complex(x, -y) + b
-        return to_ll(w.real - OFF[0], w.imag - OFF[1])
-    return f
-
-# ------------------------------------------------------------------ 2. sheet images with world files
-for pno in SHEETS:
-    page = doc[pno - 1]; page.set_rotation(0)
-    pix = page.get_pixmap(dpi=DPI, clip=DRAWING_AREA)
-    name = f'contract_sheet_{pno - 29}'
-    pix.save(os.path.join(OUT, name + '.png'))
-    p = fits[pno]; a = math.exp(p[0]) * cmath.exp(1j * p[1]); b = complex(p[2], p[3]); s = 72 / DPI
-    ar, ai = a.real, a.imag
-    x0, y0 = DRAWING_AREA.x0 + s / 2, DRAWING_AREA.y0 + s / 2               # pixel centres
-    # UTM X = ar*x + ai*y + Re(b) - offx ;  UTM Y = ai*x - ar*y + Im(b) - offy ;  x = x0 + col*s, y = y0 + row*s
-    world = [ar * s, ai * s, ai * s, -ar * s, ar * x0 + ai * y0 + b.real - OFF[0], ai * x0 - ar * y0 + b.imag - OFF[1]]
-    open(os.path.join(OUT, name + '.pgw'), 'w').write('\n'.join(f'{v:.6f}' for v in world) + '\n')
-
-# ------------------------------------------------------------------ 3. planned structures by fill colour
-CLASSES = {   # fill colour -> (layer, what it is)
-    (0.95, 0.4, 0.13): ('proposed_flyover', 'Proposed elevated corridor deck (Level-1 loop, rotary and ramps)'),
-    (0.48, 0.69, 0.87): ('ejipura_flyover', 'Ejipura flyover approach (under construction)'),
-    (0.7, 1.0, 0.85): ('bmrcl_land', 'BMRCL (metro) land'),
-    (1.0, 0.0, 1.0): ('metro_tunnel', 'Metro Phase-3A tunnel alignment'),
-}
-TUNNEL_NEAR = ('Tube', 'Tunnel', 'Phase-3A', '16+571', '16+600', '16+745')   # magenta is also used for other things
-def page_to_utm(pno):
-    p = fits[pno]; a = math.exp(p[0]) * cmath.exp(1j * p[1]); b = complex(p[2], p[3])
-    def f(x, y):
-        w = a * complex(x, -y) + b
-        return (w.real - OFF[0], w.imag - OFF[1])
-    return f
+def ll(a, b, x, y):
+    return tuple(round(v, 7) for v in to_ll(*utm(a, b, x, y)))
 
 def bezier(p0, p1, p2, p3, n=8):
     return [((1 - t) ** 3 * p0.x + 3 * (1 - t) ** 2 * t * p1.x + 3 * (1 - t) * t * t * p2.x + t ** 3 * p3.x,
              (1 - t) ** 3 * p0.y + 3 * (1 - t) ** 2 * t * p1.y + 3 * (1 - t) * t * t * p2.y + t ** 3 * p3.y)
             for t in (i / n for i in range(1, n + 1))]
 
-def subpaths(d):
-    """Split a drawn path into its separate closed pieces (a CAD fill often holds many), curves sampled."""
-    rings, cur, last = [], [], None
+def pieces(d):
+    """Split a drawn path into its separate pieces (CAD paths often hold many), curves sampled. -> [(points, closed)]"""
+    out, cur, last = [], [], None
     for it in d['items']:
         if it[0] == 're':
-            r = it[1]; rings.append([(r.x0, r.y0), (r.x1, r.y0), (r.x1, r.y1), (r.x0, r.y1)]); last = None; continue
+            r = it[1]; out.append(([(r.x0, r.y0), (r.x1, r.y0), (r.x1, r.y1), (r.x0, r.y1)], True)); last = None; continue
         if it[0] == 'qu':
-            q = it[1]; rings.append([(q.ul.x, q.ul.y), (q.ur.x, q.ur.y), (q.lr.x, q.lr.y), (q.ll.x, q.ll.y)]); last = None; continue
+            q = it[1]; out.append(([(q.ul.x, q.ul.y), (q.ur.x, q.ur.y), (q.lr.x, q.lr.y), (q.ll.x, q.ll.y)], True)); last = None; continue
         a = it[1]
-        if last is None or abs(a.x - last.x) + abs(a.y - last.y) > 0.01:       # a jump starts a new piece
-            if len(cur) >= 3: rings.append(cur)
+        if last is None or abs(a.x - last.x) + abs(a.y - last.y) > 0.01:
+            if len(cur) >= 2: out.append((cur, False))
             cur = [(a.x, a.y)]
         cur += [(it[2].x, it[2].y)] if it[0] == 'l' else bezier(*it[1:5])
         last = it[-1]
-    if len(cur) >= 3: rings.append(cur)
-    return rings
+    if len(cur) >= 2: out.append((cur, False))
+    return [(pts, closed or (len(pts) > 2 and abs(pts[0][0] - pts[-1][0]) + abs(pts[0][1] - pts[-1][1]) < 0.01)) for pts, closed in out]
 
-# work in metres (UTM 43N); close gaps left by lane markings and dashes, then simplify
-SIMPLIFY, MIN_AREA, MIN_HOLE = 0.4, 15.0, 40.0
-CLOSE = {'metro_tunnel': 6.0}          # the tunnel is drawn as two thin walls: close the gap between them
-DEFAULT_CLOSE = 1.5
-polys = {c: [] for c in CLASSES}
-for pno in SHEETS:
-    page, f = doc[pno - 1], page_to_utm(pno)
-    anchors = [r for t in TUNNEL_NEAR for r in page.search_for(t)]
+def on_frame(pts, tol=12):
+    """page-aligned line along the edge of the drawing area: the sheet frame, not drawing content."""
+    xs, ys = [p[0] for p in pts], [p[1] for p in pts]
+    vertical, horizontal = max(xs) - min(xs) < 0.5, max(ys) - min(ys) < 0.5
+    near = lambda v, edge: abs(v - edge) < tol
+    if ((vertical and (near(xs[0], AREA.x0) or near(xs[0], AREA.x1))) or
+            (horizontal and (near(ys[0], AREA.y0) or near(ys[0], AREA.y1)))):
+        return True
+    # view frames inside the area: long outlines made only of page-aligned segments (roads never are)
+    segs = list(zip(pts, pts[1:]))
+    aligned = all(abs(a[0] - b[0]) < 0.5 or abs(a[1] - b[1]) < 0.5 for a, b in segs)
+    return aligned and sum(abs(a[0] - b[0]) + abs(a[1] - b[1]) for a, b in segs) > 600
+
+# ------------------------------------------------------------------ 1. sheet images
+for pno, info in G['pages'].items():
+    pno = int(pno); page = doc[pno - 1]; page.set_rotation(0)
+    a, b = transform(pno); s = 72 / DPI; ar, ai = a.real, a.imag
+    name = f"{SET_CODE[info['set']]}_{info['sheet']}"
+    page.get_pixmap(dpi=DPI, clip=AREA).save(os.path.join(OUT, 'sheets', name + '.png'))
+    x0, y0 = AREA.x0 + s / 2, AREA.y0 + s / 2
+    world = [ar * s, ai * s, ai * s, -ar * s, ar * x0 + ai * y0 + b.real - OFF[0], ai * x0 - ar * y0 + b.imag - OFF[1]]
+    open(os.path.join(OUT, 'sheets', name + '.pgw'), 'w').write('\n'.join(f'{v:.6f}' for v in world) + '\n')
+
+# ------------------------------------------------------------------ 2. everything drawn, and 3. named structures
+CLASSES = {   # (set, fill colour) -> (layer, what it is). Structures come from the alignment drawings; land from the LA plans.
+    ('gad', (0.95, 0.4, 0.13)): ('proposed_deck', 'Proposed elevated corridor deck (Level-1 / Level-2, loops, rotary, ramps)'),
+    ('gad', (0.6, 0.61, 0.22)): ('existing_flyover', 'Existing flyovers, incl. the Silk Board double-decker (olive in the drawings)'),
+    ('gad', (0.48, 0.69, 0.87)): ('ejipura_flyover', 'Ejipura flyover approach (under construction)'),
+    ('gad', (0.82, 0.61, 0.78)): ('metro', 'Metro line and stations, elevated (lavender in the drawings)'),
+    ('gad', (1.0, 0.5, 0.0)): ('orange_structure', None),             # underpass or metro, decided by nearby labels
+    ('gad', (1.0, 0.0, 1.0)): ('metro_tunnel', 'Metro Phase-3A tunnel alignment (underground)'),
+    ('gad', (0.7, 1.0, 0.85)): ('bmrcl_land', 'BMRCL (metro) land'),
+    ('la', (1.0, 1.0, 0.0)): ('land_acquisition', 'Land to be acquired (land acquisition plan)'),
+}
+TUNNEL_TEXT = re.compile(r'(16\+\d{3}|tunnel|tube|phase-3a)', re.I)
+UNDERPASS_TEXT = re.compile(r'under\s*pass', re.I)
+METRO_TEXT = re.compile(r'metro|station|staton', re.I)
+KEY_LABEL = re.compile(r'tunnel|tube|metro|station|staton|flyover|ramp|loop|rotary|level|double\s*decker|under\s*pass|underpass|'
+                       r'project|bmrcl|bus stand|approach', re.I)
+
+shapes = collections.defaultdict(list)
+fl = open(os.path.join(OUT, 'full_lines.geojsonl'), 'w')
+fp = open(os.path.join(OUT, 'full_polygons.geojsonl'), 'w')
+ft = open(os.path.join(OUT, 'full_text.geojsonl'), 'w')
+labels, seen_labels, counts = [], set(), collections.Counter()
+for pno, info in sorted(G['pages'].items(), key=lambda kv: int(kv[0])):
+    pno = int(pno); page = doc[pno - 1]; a, b = transform(pno); scale = abs(a)
+    setc = SET_CODE[info['set']]
+    base = {'page': pno, 'set': info['set'], 'sheet': info['sheet']}
+    # text first: it is also used to decide what some coloured shapes are
+    texts = []
+    for blk in page.get_text('dict')['blocks']:
+        for line in blk.get('lines', []):
+            t = ' '.join(''.join(s['text'] for s in line['spans']).split())
+            if not t: continue
+            x0, y0, x1, y1 = line['bbox']
+            if not AREA.contains(pymupdf.Point((x0 + x1) / 2, (y0 + y1) / 2)): continue
+            dx, dy = line['dir']
+            ang = math.degrees(cmath.phase(a * complex(dx, -dy)))            # counter-clockwise from east, on the map
+            size = max(s['size'] for s in line['spans']) * scale
+            cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+            texts.append((t, cx, cy))
+            ft.write(json.dumps({'type': 'Feature', 'properties': {**base, 'text': t, 'rotation': round(-ang, 1), 'size_m': round(size, 2),
+                     'colour': hexc(pymupdf.sRGB_to_pdf(line['spans'][0]['color'])) if 'color' in line['spans'][0] else None},
+                     'geometry': {'type': 'Point', 'coordinates': ll(a, b, cx, cy)}}) + '\n'); counts['text'] += 1
+        # key labels: the whole text block (labels often run over two lines), not clipped at the sheet edge
+        parts_ = []
+        for ln in blk.get('lines', []):
+            t_ = ' '.join(''.join(ch for ch in ''.join(s['text'] for s in ln['spans']) if ch.isprintable()).split())
+            if t_ and t_ not in parts_: parts_.append(t_)              # the same label repeated along a line
+        bt = ' '.join(parts_).strip()
+        x0, y0, x1, y1 = blk['bbox']; inner = pymupdf.Rect(AREA.x0 + 12, AREA.y0 + 12, AREA.x1 - 12, AREA.y1 - 12)
+        if (bt and KEY_LABEL.search(bt) and inner.contains(pymupdf.Rect(x0, y0, x1, y1)) and bt.lower() not in seen_labels
+                and blk.get('lines')):
+            seen_labels.add(bt.lower())
+            dx, dy = blk['lines'][0]['dir']; ang = math.degrees(cmath.phase(a * complex(dx, -dy)))
+            labels.append({'type': 'Feature', 'properties': {'label': bt, 'rotation': round(-ang, 1), 'source': f"{info['set']} {info['sheet']}"},
+                           'geometry': {'type': 'Point', 'coordinates': ll(a, b, (x0 + x1) / 2, (y0 + y1) / 2)}})
+    near = lambda rx, ry, pat, r: any(pat.search(t) and math.hypot(cx - rx, cy - ry) < r for t, cx, cy in texts)
     for d in page.get_drawings():
-        k = key(d.get('fill'))
-        if k not in CLASSES: continue
-        if k == (1.0, 0.0, 1.0) and not any(math.dist(((d['rect'].x0 + d['rect'].x1) / 2, (d['rect'].y0 + d['rect'].y1) / 2),
-                                                      ((r.x0 + r.x1) / 2, (r.y0 + r.y1) / 2)) < 160 for r in anchors):
-            continue
-        shape = None
-        for ring in subpaths(d):
-            g = Polygon([f(x, y) for x, y in ring]).buffer(0)
-            if g.is_empty: continue
-            # even-odd fill: overlapping pieces cut holes; otherwise pieces add up
-            shape = g if shape is None else (shape.symmetric_difference(g) if d.get('even_odd') else shape.union(g))
-        if shape is not None and not shape.is_empty: polys[k].append(shape)
+        r = d['rect']; rx, ry = (r.x0 + r.x1) / 2, (r.y0 + r.y1) / 2
+        if not AREA.contains(pymupdf.Point(rx, ry)): continue
+        if (r.width > 0.6 * AREA.width or r.height > 0.6 * AREA.height) and all(
+                it[0] == 're' or (it[0] == 'l' and (abs(it[1].x - it[2].x) < 0.5 or abs(it[1].y - it[2].y) < 0.5)) for it in d['items']):
+            continue                                       # sheet and viewport frames
+        fill, stroke = d.get('fill'), d.get('color')
+        if fill and (key(fill) == (1.0, 1.0, 1.0) or r.width > 0.6 * AREA.width or r.height > 0.6 * AREA.height):
+            continue                                       # white masks and sheet-sized boxes
+        props = {**base, 'stroke': hexc(stroke), 'fill': hexc(fill), 'width_m': round((d.get('width') or 0) * scale, 2)}
+        polys, hatch = [], []
+        for pts, closed in pieces(d):
+            if max(abs(p[0] - pts[0][0]) + abs(p[1] - pts[0][1]) for p in pts) < 0.05: continue   # dots of hatch patterns
+            if fill and len(pts) >= 3:                     # a fill closes every piece, outlined or not
+                g = Polygon([utm(a, b, x, y) for x, y in pts]).buffer(0)
+                if not g.is_empty: polys.append(g)
+            if fill and len(pts) >= 2:                     # kept as lines too: hatching is drawn as near-flat filled slivers
+                hatch.append(LineString([utm(a, b, x, y) for x, y in pts]))
+            if stroke and not fill and on_frame(pts): continue
+            if stroke and not fill:
+                fl.write(json.dumps({'type': 'Feature', 'properties': props, 'geometry': {'type': 'LineString',
+                         'coordinates': [ll(a, b, x, y) for x, y in pts]}}) + '\n'); counts['lines'] += 1
+        if hatch and key(fill) == (1.0, 0.0, 1.0) and setc == 'gad' and near(rx, ry, TUNNEL_TEXT, 170):
+            # the tunnel is drawn as hatching (Tube 2) or thin walls (Tube 1): widen the strokes and merge
+            shapes['metro_tunnel'].append(unary_union([h.buffer(1.0, cap_style=2) for h in hatch] + polys)); hatch = []
+        if not polys: continue
+        shape = polys[0]
+        for g in polys[1:]: shape = shape.symmetric_difference(g) if d.get('even_odd') else shape.union(g)
+        if shape.is_empty: continue
+        fp.write(json.dumps({'type': 'Feature', 'properties': props, 'geometry': mapping(shp_transform(lambda x, y, z=None: to_ll(x, y), shape))}) + '\n')
+        counts['polygons'] += 1
+        cls = CLASSES.get((setc, key(fill)))
+        if not cls: continue
+        layer = cls[0]
+        if layer == 'metro_tunnel': continue                # handled above (magenta is also used for other hatching)
+        if layer == 'orange_structure':
+            layer = 'underpass' if near(rx, ry, UNDERPASS_TEXT, 220) else 'metro' if near(rx, ry, METRO_TEXT, 260) else None
+            if not layer: continue
+        shapes[layer].append(shape)
+for f in (fl, fp, ft): f.close()
 
-def clean(g, close):
-    g = g.buffer(close, join_style=1).buffer(-close, join_style=1).simplify(SIMPLIFY, preserve_topology=True)
-    out = []
-    for p in getattr(g, 'geoms', [g]):
-        if p.geom_type != 'Polygon' or p.area < (200.0 if close > DEFAULT_CLOSE else MIN_AREA): continue   # wider closing leaves scraps
-        out.append(Polygon(p.exterior, [r for r in p.interiors if Polygon(r).area >= MIN_HOLE]))
-    return out
-
+DESC = {v[0]: v[1] for v in CLASSES.values() if v[1]}
+DESC['underpass'] = 'Underpass (existing)'
+CLOSE = {'metro_tunnel': 6.0, 'land_acquisition': 0.5}          # the tunnel is drawn as two thin walls
+SIMPLIFY, MIN_AREA, MIN_HOLE = 0.4, 15.0, 40.0
 feats = []
-for k, (layer, desc) in CLASSES.items():
-    if not polys[k]: continue
-    for g in clean(unary_union(polys[k]), CLOSE.get(layer, DEFAULT_CLOSE)):
-        g = shp_transform(lambda x, y, z=None: to_ll(x, y), g)
-        feats.append({'type': 'Feature', 'properties': {'layer': layer, 'what': desc,
-                      'source': 'B-SMILE contract GAD sheets 1-2, georeferenced; positions approximate (~2 m)'},
-                      'geometry': mapping(g)})
+for layer, parts in shapes.items():
+    close = CLOSE.get(layer, 1.5)
+    g = unary_union(parts).buffer(close, join_style=1).buffer(-close, join_style=1).simplify(SIMPLIFY, preserve_topology=True)
+    for p in getattr(g, 'geoms', [g]):
+        if p.geom_type != 'Polygon' or p.area < (200 if layer == 'metro_tunnel' else MIN_AREA): continue
+        p = Polygon(p.exterior, [r for r in p.interiors if Polygon(r).area >= MIN_HOLE])
+        feats.append({'type': 'Feature', 'properties': {'layer': layer, 'what': DESC[layer], 'area_m2': round(p.area),
+                      'source': 'B-SMILE elevated-corridor tender drawings, georeferenced to OpenStreetMap (about 1-2 m)'},
+                      'geometry': mapping(shp_transform(lambda x, y, z=None: to_ll(x, y), p))})
 json.dump({'type': 'FeatureCollection', 'features': feats}, open(os.path.join(OUT, 'contract_structures.geojson'), 'w'))
-
-# ------------------------------------------------------------------ labels from the drawing's own text
-LABELS = ['End of Tunnel Tube 1', 'Metro Line (Phase-3A)', 'Proposed Loop at Level-1', 'Proposed Rotary at Level-1',
-          'Proposed Flyover at Level-1', 'Exit Ramp 01', 'Entry Ramp 08', 'Flyover Under Construction Approach',
-          'KORAMANGALA 2nd BLOCK']        # 'Ejipura Flyover' left out: on the drawing it is a callout far from the flyover
-labels, seen = [], set()
-for pno in SHEETS:
-    page, f = doc[pno - 1], page_to_ll(pno)
-    for b in page.get_text('blocks'):
-        text = ' '.join(b[4].split())
-        for want in LABELS:
-            if want.lower().replace(' ', '') in text.lower().replace(' ', '') and want not in seen:
-                lon, lat = f((b[0] + b[2]) / 2, (b[1] + b[3]) / 2)
-                labels.append({'type': 'Feature', 'properties': {'label': want, 'sheet': SHEETS[pno]},
-                               'geometry': {'type': 'Point', 'coordinates': [lon, lat]}})
-                seen.add(want)
 json.dump({'type': 'FeatureCollection', 'features': labels}, open(os.path.join(OUT, 'contract_labels.geojson'), 'w'))
 
-import collections
 n = collections.Counter(f['properties']['layer'] for f in feats)
-open(os.path.join(OUT, 'report.txt'), 'w').write('\n'.join(report + [f'{k}: {v} polygons' for k, v in n.items()] +
-                                                       [f'labels found: {sorted(seen)}', f'labels missing: {sorted(set(LABELS) - seen)}']))
-print(open(os.path.join(OUT, 'report.txt')).read())
+area = collections.Counter()
+for f in feats: area[f['properties']['layer']] += f['properties']['area_m2']
+lines = [f"full drawing data: {counts['lines']} lines, {counts['polygons']} filled shapes, {counts['text']} text items",
+         *[f'{k}: {v} shapes, {area[k]:,} m2' for k, v in sorted(n.items())], f'key labels: {len(labels)}']
+open(os.path.join(OUT, 'extract_report.txt'), 'w').write('\n'.join(lines))
+print('\n'.join(lines))

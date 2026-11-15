@@ -112,18 +112,31 @@ python3 qgis/make_template.py [path/to/website/data]
 
 ### Flyover contract template (separate)
 
-`qgis/make_contract_template.py` builds `qgis/madiwala_contract.zip`: the planner template plus the B-SMILE
-tender's General Alignment Drawing sheets 1–2 placed on the map, and layers traced from them (proposed Level-1
-loop, rotary and ramps; Ejipura flyover approach; BMRCL land; Metro Phase-3A tunnel alignment). It copies the
-base template's output and leaves `make_template.py` unchanged.
+`qgis/make_contract_template.py` builds `qgis/madiwala_contract.zip`: the planner template plus everything on the
+B-SMILE tender's 17 drawing sheets (topographical survey 1–6, general alignment drawing 1–6, land acquisition plan
+1–5; PDF pages 24–40), from the loop south to Bommanahalli. It copies the base template and leaves
+`make_template.py` unchanged. The map opens on the whole corridor; the loop themes are unchanged.
 
 ```sh
 python3 qgis/make_template.py                  # base template (if not built)
-.venv/bin/python qgis/contract/extract.py      # needs the tender PDF (default: ../../docs/…Schedule A B C D F H I.pdf)
+.venv/bin/python qgis/contract/register.py     # fit all 17 sheets to OpenStreetMap  (~3 min)
+.venv/bin/python qgis/contract/extract.py      # extract everything                   (~1 min)
 python3 qgis/make_contract_template.py
 ```
-The PDF pages are vector CAD. `extract.py` fits each sheet with a similarity transform (scale, rotation, shift)
-that puts the drawing's grey road areas on the network's road edges (median error ~1.5 m), then picks structures
-by fill colour: orange = proposed deck, light blue = Ejipura flyover, mint = BMRCL land, magenta near the tunnel
-labels = tunnel. Some drawing labels (e.g. "Proposed Loop at Level-1") are drawn as linework, not text, so they
-can't be extracted. Outputs (`qgis/contract/out/`) and the zip are not committed.
+Extra venv packages: `pip install pymupdf scipy shapely`. The PDF path defaults to `../../docs/…Schedule A B C D F H I.pdf`.
+
+- **Georeferencing (`register.py`).** The sheets are vector CAD views of one model at one scale. Every sheet is
+  linked to GAD sheet 2 through labels both show (RANSAC on label positions, drawing area only; sheet 6 needs a
+  shift-only fallback as it barely overlaps sheet 5). One similarity transform then maps the model to UTM 43N,
+  fitted so the grey road areas' edges on all sheets land on road edges of a network built from
+  `osm/corridor.osm.xml` (downloaded with `osm/corridor_query.overpassql`). Result: same scale on every sheet
+  (0.691 m per PDF point), median road-edge error 0.8–1.5 m. Report: `qgis/contract/out/georef_report.txt`.
+- **Extraction (`extract.py`).** Full data: every stroked line, filled shape and text line inside the drawing frame,
+  with page/set/sheet, colours, width, text rotation and size; sheet and view frames, white masks and hatch dots
+  are dropped. Named structures by fill colour (alignment drawings, plus yellow on the LA plans for land):
+  orange = proposed deck, olive = existing flyovers, light blue = Ejipura flyover, lavender = metro and stations,
+  bright orange = underpass or metro (by nearby labels), magenta near metro chainages (16+…) or tunnel labels =
+  Phase-3A tunnel (hatching is widened and merged; both tubes share one alignment), mint = BMRCL land.
+  Labels are whole text blocks matching flyover/metro/tunnel/ramp words. Labels drawn as linework (e.g.
+  "Proposed Loop at Level-1") are not text and cannot be extracted.
+- Outputs (`qgis/contract/out/`, the zip) are derived from the tender drawings and are not committed.
