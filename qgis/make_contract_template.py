@@ -86,7 +86,8 @@ def text_style(size=8, color='#212529', bold=True):
 
 # named structures
 STYLE = {
-    'proposed_deck': ('Proposed elevated corridor deck (Level-1/Level-2, loops, rotary, ramps)', '#f76707', 0.55, False),
+    'proposed_deck': ('Proposed elevated corridor deck, Level-1 (loops, rotary, ramps)', '#f76707', 0.55, False),
+    'proposed_deck_level2': ('Proposed deck, second level over Level-1 (Silk Board)', '#e03131', 0.6, False),
     'existing_flyover': ('Existing flyovers, incl. the Silk Board double-decker', '#74b816', 0.5, False),
     'ejipura_flyover': ('Ejipura flyover approach (under construction)', '#4dabf7', 0.55, False),
     'metro': ('Metro line and stations (elevated)', '#9c36b5', 0.5, False),
@@ -131,8 +132,10 @@ pal.setDataDefinedProperties(dd)
 fmt.setSizeUnit(Qgis.RenderUnit.MapUnits); pal.setFormat(fmt)
 pal.obstacleSettings().setIsObstacle(False); pal.placementSettings().setOverlapHandling(Qgis.LabelOverlapHandling.AllowOverlapIfRequired)
 text.setLabeling(QgsVectorLayerSimpleLabeling(pal)); text.setLabelsEnabled(True)
+text.setMapTipTemplate('<strong>[% "text" %]</strong><br>' + SMALL + 'Drawing [% "sets" %], sheet [% "sheet" %]'
+                       '[% if("ocr" = \'yes\', \'<br>Drawn as linework; read by OCR as "\' || "ocr_read_as" || \'" (\' || "ocr_fix" || \')\', \'\') %]</span>')
 for lyr in (lines, shapes):
-    lyr.setMapTipTemplate('<strong>Drawing [% "set" %] [% "sheet" %]</strong><br>' + SMALL +
+    lyr.setMapTipTemplate('<strong>Drawing: [% "sets" %], sheet [% "sheet" %]</strong><br>' + SMALL +
                           'line [% "stroke" %], fill [% "fill" %], width [% "width_m" %] m (PDF page [% "page" %])</span>')
 for lyr in (struct, labels, lines, shapes, text): lyr.setReadOnly(True)
 
@@ -187,7 +190,7 @@ with open(os.path.join(PKG, 'READ ME FIRST.txt'), 'a') as f:
     f.write('''
 FLYOVER CONTRACT DRAWINGS (this version only)
 - The group "Flyover contract drawings" holds what the B-SMILE elevated-corridor tender drawings show from
-  the loop south to Bommanahalli: the proposed deck (Level-1/Level-2, loops, rotary, ramps), existing
+  the loop south to Bommanahalli: the proposed deck (Level-1, and the second level at Silk Board), existing
   flyovers incl. the Silk Board double-decker, the Ejipura flyover, the metro line and stations, the Metro
   Phase-3A tunnel (underground), BMRCL land and land to be acquired - plus the drawings' labels.
 - "Full drawing data" has every line, filled shape and text item from the 17 sheets in their drawing

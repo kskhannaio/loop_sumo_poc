@@ -120,10 +120,11 @@ B-SMILE tender's 17 drawing sheets (topographical survey 1–6, general alignmen
 ```sh
 python3 qgis/make_template.py                  # base template (if not built)
 .venv/bin/python qgis/contract/register.py     # fit all 17 sheets to OpenStreetMap  (~3 min)
+.venv/bin/python qgis/contract/ocr.py          # read labels drawn as linework        (~8 min, cached)
 .venv/bin/python qgis/contract/extract.py      # extract everything                   (~1 min)
 python3 qgis/make_contract_template.py
 ```
-Extra venv packages: `pip install pymupdf scipy shapely`. The PDF path defaults to `../../docs/…Schedule A B C D F H I.pdf`.
+Extra venv packages: `pip install pymupdf scipy shapely`; OCR needs Tesseract with English (`pacman -S tesseract tesseract-data-eng`). The PDF path defaults to `../../docs/…Schedule A B C D F H I.pdf`.
 
 - **Georeferencing (`register.py`).** The sheets are vector CAD views of one model at one scale. Every sheet is
   linked to GAD sheet 2 through labels both show (RANSAC on label positions, drawing area only; sheet 6 needs a
@@ -137,6 +138,14 @@ Extra venv packages: `pip install pymupdf scipy shapely`. The PDF path defaults 
   orange = proposed deck, olive = existing flyovers, light blue = Ejipura flyover, lavender = metro and stations,
   bright orange = underpass or metro (by nearby labels), magenta near metro chainages (16+…) or tunnel labels =
   Phase-3A tunnel (hatching is widened and merged; both tubes share one alignment), mint = BMRCL land.
-  Labels are whole text blocks matching flyover/metro/tunnel/ramp words. Labels drawn as linework (e.g.
-  "Proposed Loop at Level-1") are not text and cannot be extracted.
+  Bright orange on the survey sheets gives the underpass. The three sets repeat one base map: each drawn entity
+  is kept once, with a `sets` field listing every set that shows it.
+- **Labels drawn as linework (`ocr.py`).** Labels such as "Proposed Loop at Level-1" are magenta pen strokes, not
+  text. The short magenta strokes are drawn to an image, grouped into labels, turned horizontal and read with
+  Tesseract (both orientations, confidence >= 60). `extract.py` corrects each reading to the closest of the
+  drawings' known phrases (or keeps it as read if confidence >= 75) and marks it `ocr = yes` with the raw reading.
+- **Level-2.** The deck's two levels share a colour. The drawings mark the second level with thick blue dashed
+  lines across the corridor at "START OF APPROACH" and "END OF APPROACH" (SECOND LEVEL); a line is fitted through
+  each set of dashes, and the deck between them within 30 m of the main deck's axis is `proposed_deck_level2`.
+  The loops and ramps beside it stay Level-1.
 - Outputs (`qgis/contract/out/`, the zip) are derived from the tender drawings and are not committed.
