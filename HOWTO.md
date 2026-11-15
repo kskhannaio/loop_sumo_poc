@@ -109,3 +109,21 @@ folder, by default `../corridor_design_challenge/data`:
 ```sh
 python3 qgis/make_template.py [path/to/website/data]
 ```
+
+### Flyover contract template (separate)
+
+`qgis/make_contract_template.py` builds `qgis/madiwala_contract.zip`: the planner template plus the B-SMILE
+tender's General Alignment Drawing sheets 1–2 placed on the map, and layers traced from them (proposed Level-1
+loop, rotary and ramps; Ejipura flyover approach; BMRCL land; Metro Phase-3A tunnel alignment). It copies the
+base template's output and leaves `make_template.py` unchanged.
+
+```sh
+python3 qgis/make_template.py                  # base template (if not built)
+.venv/bin/python qgis/contract/extract.py      # needs the tender PDF (default: ../../docs/…Schedule A B C D F H I.pdf)
+python3 qgis/make_contract_template.py
+```
+The PDF pages are vector CAD. `extract.py` fits each sheet with a similarity transform (scale, rotation, shift)
+that puts the drawing's grey road areas on the network's road edges (median error ~1.5 m), then picks structures
+by fill colour: orange = proposed deck, light blue = Ejipura flyover, mint = BMRCL land, magenta near the tunnel
+labels = tunnel. Some drawing labels (e.g. "Proposed Loop at Level-1") are drawn as linework, not text, so they
+can't be extracted. Outputs (`qgis/contract/out/`) and the zip are not committed.
