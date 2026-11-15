@@ -118,9 +118,42 @@ CLASSES = {   # fill colour -> (layer, what it is)
     (1.0, 0.0, 1.0): ('metro_tunnel', 'Metro Phase-3A tunnel alignment'),
 }
 TUNNEL_NEAR = ('Tube', 'Tunnel', 'Phase-3A', '16+571', '16+600', '16+745')   # magenta is also used for other things
+def page_to_utm(pno):
+    p = fits[pno]; a = math.exp(p[0]) * cmath.exp(1j * p[1]); b = complex(p[2], p[3])
+    def f(x, y):
+        w = a * complex(x, -y) + b
+        return (w.real - OFF[0], w.imag - OFF[1])
+    return f
+
+def bezier(p0, p1, p2, p3, n=8):
+    return [((1 - t) ** 3 * p0.x + 3 * (1 - t) ** 2 * t * p1.x + 3 * (1 - t) * t * t * p2.x + t ** 3 * p3.x,
+             (1 - t) ** 3 * p0.y + 3 * (1 - t) ** 2 * t * p1.y + 3 * (1 - t) * t * t * p2.y + t ** 3 * p3.y)
+            for t in (i / n for i in range(1, n + 1))]
+
+def subpaths(d):
+    """Split a drawn path into its separate closed pieces (a CAD fill often holds many), curves sampled."""
+    rings, cur, last = [], [], None
+    for it in d['items']:
+        if it[0] == 're':
+            r = it[1]; rings.append([(r.x0, r.y0), (r.x1, r.y0), (r.x1, r.y1), (r.x0, r.y1)]); last = None; continue
+        if it[0] == 'qu':
+            q = it[1]; rings.append([(q.ul.x, q.ul.y), (q.ur.x, q.ur.y), (q.lr.x, q.lr.y), (q.ll.x, q.ll.y)]); last = None; continue
+        a = it[1]
+        if last is None or abs(a.x - last.x) + abs(a.y - last.y) > 0.01:       # a jump starts a new piece
+            if len(cur) >= 3: rings.append(cur)
+            cur = [(a.x, a.y)]
+        cur += [(it[2].x, it[2].y)] if it[0] == 'l' else bezier(*it[1:5])
+        last = it[-1]
+    if len(cur) >= 3: rings.append(cur)
+    return rings
+
+# work in metres (UTM 43N); close gaps left by lane markings and dashes, then simplify
+SIMPLIFY, MIN_AREA, MIN_HOLE = 0.4, 15.0, 40.0
+CLOSE = {'metro_tunnel': 6.0}          # the tunnel is drawn as two thin walls: close the gap between them
+DEFAULT_CLOSE = 1.5
 polys = {c: [] for c in CLASSES}
 for pno in SHEETS:
-    page, f = doc[pno - 1], page_to_ll(pno)
+    page, f = doc[pno - 1], page_to_utm(pno)
     anchors = [r for t in TUNNEL_NEAR for r in page.search_for(t)]
     for d in page.get_drawings():
         k = key(d.get('fill'))
@@ -128,21 +161,27 @@ for pno in SHEETS:
         if k == (1.0, 0.0, 1.0) and not any(math.dist(((d['rect'].x0 + d['rect'].x1) / 2, (d['rect'].y0 + d['rect'].y1) / 2),
                                                       ((r.x0 + r.x1) / 2, (r.y0 + r.y1) / 2)) < 160 for r in anchors):
             continue
-        ring = []
-        for it in d['items']:
-            if it[0] == 'l': ring += [it[1], it[2]]
-            elif it[0] == 'c': ring += [it[1], it[4]]
-            elif it[0] == 're': r = it[1]; ring += [r.tl, r.tr, r.br, r.bl]
-            elif it[0] == 'qu': q = it[1]; ring += [q.ul, q.ur, q.lr, q.ll]
-        if len(ring) >= 3:
-            g = Polygon([f(q.x, q.y) for q in ring]).buffer(0)
-            if not g.is_empty: polys[k].append(g)
+        shape = None
+        for ring in subpaths(d):
+            g = Polygon([f(x, y) for x, y in ring]).buffer(0)
+            if g.is_empty: continue
+            # even-odd fill: overlapping pieces cut holes; otherwise pieces add up
+            shape = g if shape is None else (shape.symmetric_difference(g) if d.get('even_odd') else shape.union(g))
+        if shape is not None and not shape.is_empty: polys[k].append(shape)
+
+def clean(g, close):
+    g = g.buffer(close, join_style=1).buffer(-close, join_style=1).simplify(SIMPLIFY, preserve_topology=True)
+    out = []
+    for p in getattr(g, 'geoms', [g]):
+        if p.geom_type != 'Polygon' or p.area < (200.0 if close > DEFAULT_CLOSE else MIN_AREA): continue   # wider closing leaves scraps
+        out.append(Polygon(p.exterior, [r for r in p.interiors if Polygon(r).area >= MIN_HOLE]))
+    return out
+
 feats = []
 for k, (layer, desc) in CLASSES.items():
     if not polys[k]: continue
-    u = unary_union(polys[k]).buffer(0.000002).buffer(-0.000002)     # close hairline gaps between drawn pieces
-    for g in getattr(u, 'geoms', [u]):
-        if g.area < 1e-10: continue
+    for g in clean(unary_union(polys[k]), CLOSE.get(layer, DEFAULT_CLOSE)):
+        g = shp_transform(lambda x, y, z=None: to_ll(x, y), g)
         feats.append({'type': 'Feature', 'properties': {'layer': layer, 'what': desc,
                       'source': 'B-SMILE contract GAD sheets 1-2, georeferenced; positions approximate (~2 m)'},
                       'geometry': mapping(g)})
