@@ -1,7 +1,8 @@
 # How the SUMO model was built
 
-A traffic and pedestrian simulation of a 1.9 km triangle of roads in Bengaluru (the "Madiwala loop", junctions A, B, C).
-It compares today's streets with a version that has 8 extra signalised pedestrian crossings, for the 8–9 am peak.
+A traffic and pedestrian simulation of a ~2 km triangle of roads in Bengaluru (the "Madiwala loop", junctions A, B, C),
+for the 8–9 am peak. Three scenarios run on identical demand: `baseline` (today), `trial_crossings` (8 extra signalised
+pedestrian crossings) and `flyover_opened` (the crossings, with ~half the through traffic moved onto a new flyover).
 Everything is rebuilt from scratch by `python run.py`.
 
 ## Terms you'll meet
