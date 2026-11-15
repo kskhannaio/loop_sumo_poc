@@ -9,7 +9,7 @@ Writes out/metrics/*.csv and out/metrics/metrics.json:
   buses.csv            bus travel time and delay
 """
 import collections, csv, json, math, os, statistics as stt, xml.etree.ElementTree as ET
-from common import P, SCENARIOS, SIDES, SIDE_NAME, cfg, hhmm, read_net, carriageways, centrelines, LL2M
+from common import P, SCENARIOS, SIDES, SIDE_NAME, JUNCTIONS, cfg, hhmm, read_net, carriageways, centrelines, LL2M
 import make_demand as MD
 
 C = cfg(); T = C['time']
@@ -127,8 +127,16 @@ for scn in SCENARIOS:
     tl_nodes = {}
     for label, tid in sig.items():
         for c in net.getTLS(tid).getConnections(): tl_nodes[c[0].getEdge().getToNode().getID()] = label
+    # a junction without a signal (config signals.signalised_junctions) is still A, B or C: label it by position
+    jxy = {j: net.convertLonLat2XY(*ll) for j, ll in JUNCTIONS.items()}
+    def label_of(node):
+        if node in tl_nodes: return tl_nodes[node]
+        try: xy = net.getNode(node).getCoord()
+        except Exception: return 'other junctions'
+        j = min(jxy, key=lambda k: math.dist(jxy[k], xy))
+        return j if math.dist(jxy[j], xy) < 60 else 'other junctions'
     agg = collections.Counter()
-    for node, n in by_node.items(): agg[tl_nodes.get(node, 'other junctions')] += n
+    for node, n in by_node.items(): agg[label_of(node)] += n
     # foot over bridges: people entering a bridge edge (OSM footway bridges; ids of the joining footways start '-8')
     on_edge = collections.Counter()
     for iv in ET.parse(os.path.join(d, 'edgedata_people.xml')).getroot().findall('interval'):

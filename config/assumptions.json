@@ -20,7 +20,12 @@
     "midblock_yellow_s": 3,
     "junction_type": "actuated",
     "junction_min_green_s": 8,
-    "junction_max_green_s": 60
+    "junction_max_green_s": 60,
+    "signalised_junctions": [
+      "A",
+      "C"
+    ],
+    "_signalised_note": "DATA for A and B (tender route map, page 23: Signal-1 is at junction A, and no signal is drawn at the Madiwala underpass junction B; it is a schematic, so confirm on the walk). ASSUMED for C, which is not on the route map. Junctions not listed here have no signal even where OpenStreetMap maps one."
   },
   "network": {
     "_tag": "ASSUMED - corrections to the OpenStreetMap network; confirm on the walk",

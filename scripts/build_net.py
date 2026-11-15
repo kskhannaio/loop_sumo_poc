@@ -112,16 +112,21 @@ run([BIN('netconvert'), '-c', P('net', 'build.netccfg'), '--osm-files', P('net',
 # (nodes pass 1 already signalised are left alone; re-setting them crashes netconvert)
 RADIUS = {'A': 40, 'B': 40, 'C': 48}
 p1 = read_net(P('net', 'pass1.net.xml'))
-tls_nodes = []
+SIGNALISED = C.get('signalised_junctions', list(JUNCTIONS))       # junctions left out get no signal, even if OSM maps one
+tls_nodes, unset = [], []
 for jid, ll in JUNCTIONS.items():
     x, y = p1.convertLonLat2XY(*ll)
     for n in p1.getNodes():
         road = [e for e in n.getIncoming() + n.getOutgoing() if e.allows('passenger')]
         main = any(e.getPriority() >= 11 for e in road)          # touches a primary/trunk road
-        if (len(road) >= 3 and main and n.getType() != 'traffic_light'
-                and math.dist(n.getCoord(), (x, y)) <= RADIUS[jid]): tls_nodes.append(n.getID())
+        near = math.dist(n.getCoord(), (x, y)) <= RADIUS[jid]
+        if jid not in SIGNALISED:
+            if near and n.getType().startswith('traffic_light'): unset.append(n.getID())
+        elif len(road) >= 3 and main and n.getType() != 'traffic_light' and near: tls_nodes.append(n.getID())
+patched.append(f"signals at junctions {', '.join(SIGNALISED)}" + (f"; removed at {len(unset)} node(s) of the others" if unset else ''))
 run([BIN('netconvert'), '-c', P('net', 'tls.netccfg'), '--sumo-net-file', P('net', 'pass1.net.xml'),
-     '--tls.set', ','.join(tls_nodes), '--output-file', P('net', 'base.net.xml')] + tls_opts,
+     '--output-file', P('net', 'base.net.xml')] + (['--tls.set', ','.join(tls_nodes)] if tls_nodes else [])
+    + (['--tls.unset', ','.join(unset)] if unset else []) + tls_opts,
     log=P('out', 'checks', 'netconvert_pass2.log'))
 
 # ---- checks --------------------------------------------------------------------------------
