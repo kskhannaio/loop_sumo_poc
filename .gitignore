@@ -12,3 +12,4 @@ doc/*.out
 doc/*.toc
 qgis/madiwala_proposals/
 qgis/madiwala_proposals.zip
+qgis/*.gpkg
