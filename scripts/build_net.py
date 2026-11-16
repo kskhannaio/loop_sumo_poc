@@ -161,14 +161,30 @@ for jid in TURN_AT:
                 for c in straight:
                     ET.SubElement(con, 'delete', attrib={'from': e.getID(), 'to': c.getTo().getID(), 'fromLane': str(lanes[-1]), 'toLane': str(c.getToLane().getIndex())})
                 turn_lanes += 1
+# lane use at unsignalised junctions (config network.lane_use): which lane may make which turn, where netconvert's guess
+# leaves a lane idle. Ways are OSM ids; lanes are SUMO lane numbers on the edge that meets the junction.
+LU = N.get('lane_use', {}); lane_use = 0
+for jid, spec in LU.items():
+    if jid.startswith('_'): continue
+    x, y = p1.convertLonLat2XY(*JUNCTIONS[jid])
+    for n in p1.getNodes():
+        if math.dist(n.getCoord(), (x, y)) > RADIUS[jid]: continue
+        for kind, tag in (('remove', 'delete'), ('add', 'connection')):
+            for r in spec.get(kind, []):
+                for e in n.getIncoming():
+                    for o in n.getOutgoing():
+                        if e.getID().split('#')[0] == str(r['from_way']) and o.getID().split('#')[0] == str(r['to_way']):
+                            ET.SubElement(con, tag, attrib={'from': e.getID(), 'to': o.getID(), 'fromLane': str(r['from_lane']), 'toLane': str(r['to_lane'])})
+                            lane_use += 1
+if lane_use: patched.append(f"lane use: {lane_use} turn connection(s) changed at junction(s) {', '.join(k for k in LU if not k.startswith('_'))}")
 ET.ElementTree(con).write(P('net', 'plain', 'turn_lanes.con.xml'))
 if turn_lanes: patched.append(f"turn-only median lane with a protected green on {turn_lanes} approach(es) at junction(s) {', '.join(TURN_AT)}")
 patched.append(f"signals at junctions {', '.join(SIGNALISED)}" + (f"; removed at {len(unset)} node(s) of the others" if unset else ''))
 run([BIN('netconvert'), '-c', P('net', 'tls.netccfg'), '--sumo-net-file', P('net', 'pass1.net.xml'),
      '--output-file', P('net', 'base.net.xml')] + (['--tls.set', ','.join(tls_nodes)] if tls_nodes else [])
     + (['--tls.unset', ','.join(unset)] if unset else [])
-    + (['--connection-files', P('net', 'plain', 'turn_lanes.con.xml'), '--tls.rebuild', 'true',
-        '--tls.left-green.time', str(C.get('protected_turn_green_s', 6))] if turn_lanes else []) + tls_opts,
+    + (['--connection-files', P('net', 'plain', 'turn_lanes.con.xml')] if len(con) else [])
+    + (['--tls.rebuild', 'true', '--tls.left-green.time', str(C.get('protected_turn_green_s', 6))] if turn_lanes else []) + tls_opts,
     log=P('out', 'checks', 'netconvert_pass2.log'))
 
 # ---- checks --------------------------------------------------------------------------------

@@ -1,0 +1,661 @@
+{
+ "type": "FeatureCollection",
+ "name": "Madiwala loop proposal",
+ "format": "corridor_design_challenge draw v1",
+ "proposed_by": "",
+ "saved": "2026-11-15T17:46:55.943Z",
+ "types": [
+  {
+   "name": "Signalised crossing",
+   "shape": "point",
+   "colour": "#7048e8",
+   "custom": false
+  },
+  {
+   "name": "Zebra crossing",
+   "shape": "point",
+   "colour": "#2f9e44",
+   "custom": false
+  },
+  {
+   "name": "Remove crossing",
+   "shape": "point",
+   "colour": "#e03131",
+   "custom": false
+  },
+  {
+   "name": "Move or add bus stop",
+   "shape": "point",
+   "colour": "#1971c2",
+   "custom": false
+  },
+  {
+   "name": "Turn ban",
+   "shape": "point",
+   "colour": "#c2255c",
+   "custom": false
+  },
+  {
+   "name": "Note",
+   "shape": "point",
+   "colour": "#495057",
+   "custom": false
+  },
+  {
+   "name": "Close lanes",
+   "shape": "line",
+   "colour": "#e8590c",
+   "custom": false
+  },
+  {
+   "name": "Widen footpath",
+   "shape": "line",
+   "colour": "#0c8599",
+   "custom": false
+  },
+  {
+   "name": "New footpath",
+   "shape": "line",
+   "colour": "#37b24d",
+   "custom": false
+  },
+  {
+   "name": "Pedestrianise",
+   "shape": "line",
+   "colour": "#9c36b5",
+   "custom": false
+  },
+  {
+   "name": "Area of concern",
+   "shape": "area",
+   "colour": "#f08c00",
+   "custom": false
+  },
+  {
+   "name": "Zone around a point",
+   "shape": "circle",
+   "colour": "#1098ad",
+   "custom": false
+  },
+  {
+   "name": "Island",
+   "shape": "circle",
+   "colour": "#6bbfff",
+   "custom": true
+  },
+  {
+   "name": "new road",
+   "shape": "line",
+   "colour": "#00ff04",
+   "custom": true
+  }
+ ],
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.615312707,
+       12.929374807
+      ],
+      [
+       77.615376016,
+       12.929279166
+      ],
+      [
+       77.615556934,
+       12.92949432
+      ],
+      [
+       77.615518946,
+       12.92950974
+      ],
+      [
+       77.615437326,
+       12.929550714
+      ],
+      [
+       77.615376677,
+       12.929412949
+      ],
+      [
+       77.615312707,
+       12.929374807
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "change_type": "Area of concern",
+    "label": "Zone2",
+    "notes": "",
+    "proposed_by": "",
+    "colour": "#f08c00",
+    "shape": "area"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.6153313,
+       12.929470171
+      ],
+      [
+       77.615385872,
+       12.929579587
+      ],
+      [
+       77.615011662,
+       12.929720917
+      ],
+      [
+       77.615267372,
+       12.929429139
+      ],
+      [
+       77.6153313,
+       12.929470171
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "change_type": "Area of concern",
+    "label": "Zone 1",
+    "notes": "",
+    "proposed_by": "",
+    "colour": "#f08c00",
+    "shape": "area"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.614888485,
+       12.929641894
+      ],
+      [
+       77.614849505,
+       12.929578068
+      ],
+      [
+       77.614929024,
+       12.929588706
+      ],
+      [
+       77.614888485,
+       12.929641894
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "change_type": "Area of concern",
+    "label": "Zone1",
+    "notes": "",
+    "proposed_by": "",
+    "colour": "#f08c00",
+    "shape": "area"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.615178497,
+       12.929868326
+      ],
+      [
+       77.61525178,
+       12.929839452
+      ],
+      [
+       77.61527205,
+       12.929891121
+      ],
+      [
+       77.615235408,
+       12.929907078
+      ],
+      [
+       77.615198767,
+       12.929923034
+      ],
+      [
+       77.615178497,
+       12.929868326
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "change_type": "Area of concern",
+    "label": "Zone1",
+    "notes": "",
+    "proposed_by": "",
+    "colour": "#f08c00",
+    "shape": "area"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.615368721,
+       12.92979994
+      ],
+      [
+       77.615501254,
+       12.929752071
+      ],
+      [
+       77.615633786,
+       12.929704201
+      ],
+      [
+       77.615655615,
+       12.929746752
+      ],
+      [
+       77.615384313,
+       12.92984705
+      ],
+      [
+       77.615368721,
+       12.92979994
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "change_type": "Area of concern",
+    "label": "Zone 2",
+    "notes": "",
+    "proposed_by": "",
+    "colour": "#f08c00",
+    "shape": "area"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.615019168,
+       12.929410713
+      ],
+      [
+       77.614972392,
+       12.929383359
+      ],
+      [
+       77.615046455,
+       12.929263305
+      ],
+      [
+       77.615120517,
+       12.92914325
+      ],
+      [
+       77.615168852,
+       12.929161486
+      ],
+      [
+       77.61509401,
+       12.9292861
+      ],
+      [
+       77.615019168,
+       12.929410713
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "change_type": "Area of concern",
+    "label": "Zone 2",
+    "notes": "",
+    "proposed_by": "",
+    "colour": "#f08c00",
+    "shape": "area"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.615615009,
+       12.929471991
+      ],
+      [
+       77.615415584,
+       12.929235973
+      ],
+      [
+       77.61557544,
+       12.928967559
+      ],
+      [
+       77.615863498,
+       12.929362466
+      ],
+      [
+       77.615615009,
+       12.929471991
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "change_type": "Area of concern",
+    "label": "Zone3",
+    "notes": "",
+    "proposed_by": "",
+    "colour": "#f08c00",
+    "shape": "area"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      77.61565581,
+      12.929497976
+     ],
+     [
+      77.615579797,
+      12.929489998
+     ],
+     [
+      77.615494429,
+      12.929373741
+     ],
+     [
+      77.615406722,
+      12.929262042
+     ],
+     [
+      77.615337726,
+      12.929255204
+     ]
+    ]
+   },
+   "properties": {
+    "change_type": "new road",
+    "label": "",
+    "notes": "",
+    "proposed_by": "",
+    "colour": "#00ff04",
+    "shape": "line"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      77.615468897,
+      12.929570144
+     ],
+     [
+      77.615401076,
+      12.929551464
+     ],
+     [
+      77.615349474,
+      12.929426446
+     ],
+     [
+      77.615263961,
+      12.929386211
+     ]
+    ]
+   },
+   "properties": {
+    "change_type": "new road",
+    "label": "",
+    "notes": "",
+    "proposed_by": "",
+    "colour": "#00ff04",
+    "shape": "line"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      77.615937237,
+      12.929402106
+     ],
+     [
+      77.615554323,
+      12.928894835
+     ]
+    ]
+   },
+   "properties": {
+    "change_type": "New footpath",
+    "label": "",
+    "notes": "",
+    "proposed_by": "",
+    "colour": "#37b24d",
+    "shape": "line"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.615974413,
+       12.92956878
+      ],
+      [
+       77.616008801,
+       12.929557004
+      ],
+      [
+       77.616043189,
+       12.929545228
+      ],
+      [
+       77.616071071,
+       12.929588709
+      ],
+      [
+       77.615993001,
+       12.929621319
+      ],
+      [
+       77.615974413,
+       12.92956878
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "change_type": "Area of concern",
+    "label": "Zone3",
+    "notes": "",
+    "proposed_by": "",
+    "colour": "#f08c00",
+    "shape": "area"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       77.615373871,
+       12.928821155
+      ],
+      [
+       77.615335792,
+       12.92879044
+      ],
+      [
+       77.615374856,
+       12.928744368
+      ],
+      [
+       77.615412114,
+       12.928769963
+      ],
+      [
+       77.615373871,
+       12.928821155
+      ]
+     ]
+    ]
+   },
+   "properties": {
+    "change_type": "Area of concern",
+    "label": "Zone3",
+    "notes": "",
+    "proposed_by": "",
+    "colour": "#f08c00",
+    "shape": "area"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     77.616011463,
+     12.929534864
+    ]
+   },
+   "properties": {
+    "change_type": "Zebra crossing",
+    "label": "",
+    "notes": "",
+    "proposed_by": "",
+    "colour": "#2f9e44",
+    "shape": "point"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     77.614916081,
+     12.929610263
+    ]
+   },
+   "properties": {
+    "change_type": "Zebra crossing",
+    "label": "",
+    "notes": "",
+    "proposed_by": "",
+    "colour": "#2f9e44",
+    "shape": "point"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     77.615216737,
+     12.929841009
+    ]
+   },
+   "properties": {
+    "change_type": "Zebra crossing",
+    "label": "",
+    "notes": "",
+    "proposed_by": "",
+    "colour": "#2f9e44",
+    "shape": "point"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     77.615469463,
+     12.929760319
+    ]
+   },
+   "properties": {
+    "change_type": "Zebra crossing",
+    "label": "",
+    "notes": "",
+    "proposed_by": "",
+    "colour": "#2f9e44",
+    "shape": "point"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     77.61508166,
+     12.929315814
+    ]
+   },
+   "properties": {
+    "change_type": "Zebra crossing",
+    "label": "",
+    "notes": "",
+    "proposed_by": "",
+    "colour": "#2f9e44",
+    "shape": "point"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     77.615402474,
+     12.928789665
+    ]
+   },
+   "properties": {
+    "change_type": "Zebra crossing",
+    "label": "",
+    "notes": "",
+    "proposed_by": "",
+    "colour": "#2f9e44",
+    "shape": "point"
+   }
+  }
+ ]
+}

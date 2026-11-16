@@ -1,11 +1,11 @@
 {
   "_about": "Every number the simulation relies on that is NOT measured. Values tagged ASSUMED are placeholders until the site walk / counts replace them; DATA marks values taken from a source. Edit this file, then `python run.py` to rebuild everything.",
   "time": {
-    "_note": "Weekday morning peak. Warm-up is simulated but excluded from all metrics.",
-    "sim_begin": "07:30",
-    "metrics_begin": "08:00",
-    "metrics_end": "09:00",
-    "sim_end": "09:15",
+    "_note": "Weekday morning peak, 9:30-10:30 am. Both published counts near the loop peak then: 10-11 am between Indiranagar and Domlur (3,869 vehicles against 2,430 at 8-9), 9:30-10:30 on Hosur Road south of Silk Board. Vehicle volumes below were NOT rescaled when the hour moved from 8-9 am; at the Indiranagar-Domlur count point the busier hour carries about 45% more. Warm-up is simulated but excluded from all metrics.",
+    "sim_begin": "09:00",
+    "metrics_begin": "09:30",
+    "metrics_end": "10:30",
+    "sim_end": "10:45",
     "seed": 42,
     "step_length_s": 0.5,
     "lateral_resolution_m": 0.8
@@ -25,7 +25,7 @@
       "A",
       "C"
     ],
-    "_signalised_note": "DATA for A and B (tender route map, page 23: Signal-1 is at junction A, and no signal is drawn at the Madiwala underpass junction B; it is a schematic, so confirm on the walk). ASSUMED for C, which is not on the route map. Junctions not listed here have no signal even where OpenStreetMap maps one.",
+    "_signalised_note": "DATA for A and B (tender route map, page 23: Signal-1 is at junction A, and no signal is drawn at the Madiwala underpass junction B; it is a schematic, so confirm on the walk). The corridor report's 'existing traffic signals' drawing of 23 Jan 2026 agrees: a signal at A, none at B, and the next one on Hosur Road is at Madiwala Road, south of B. ASSUMED for C, which is not on the route map. Junctions not listed here have no signal even where OpenStreetMap maps one.",
     "protected_turn_green_s": 15,
     "_turn_note": "ASSUMED: at signalised junctions the lane next to the median on an approach of 3 or more lanes is a turn-only lane (right turn and U-turn across oncoming traffic), with its own green of protected_turn_green_s. Without it the model lets those turns go only in gaps in oncoming traffic, which never come at these volumes, and the queue blocks the whole approach. Confirm the real lane use and phases on the walk.",
     "turn_only_median_lane_at": [
@@ -51,7 +51,7 @@
     }
   },
   "vehicle_mix": {
-    "_tag": "DATA - OD & toll analysis, ADT 2025-26 Indiranagar-Silk Board corridor (buses removed; they come from GTFS)",
+    "_tag": "DATA, but not from the loop - classified count between Indiranagar and Domlur, 6 am-8 pm on 25 Apr 2025 (corridor project report section 5.1; the OD & toll analysis reuses it). About 6 km north of the loop. Buses removed; they come from GTFS",
     "two_wheeler": 11758,
     "car": 7968,
     "van_maxicab": 1335,
@@ -61,7 +61,8 @@
     "truck": 262
   },
   "od_peak_veh_per_hour": {
-    "_tag": "ASSUMED except 'corridor' (DATA-derived: 27,300 veh/day x 8.5% peak-hour share / 2 directions ~ 1,150 per direction). Gateways: HN Hosur Rd north (beyond C), HS Hosur Rd south (beyond B), SE Sarjapura Rd east (beyond A), IRR Inner Ring Rd / 100 Ft Rd north-east of A, TW Tavarekere Main Rd west of C. Tavarekere Main Rd is one-way westbound in OSM, so TW is an exit only.",
+    "_tag": "ASSUMED for every movement; nothing has been counted on the loop. IRR>HS and HS>IRR (1,150) borrow the Indiranagar-Domlur count, about 6 km north: 27,300 motor vehicles in 14 hours, of which 2,430 in the 8-9 am hour both ways, halved. The day's split there was 60/40 by direction, and its busiest hour was 10-11 am (3,869), see reference_counts.",
+    "_gateways": "Gateways: HN Hosur Rd north (beyond C), HS Hosur Rd south (beyond B), SE Sarjapura Rd east (beyond A), IRR Inner Ring Rd / 100 Ft Rd north-east of A, TW Tavarekere Main Rd west of C. Tavarekere Main Rd is one-way westbound in OSM, so TW is an exit only.",
     "IRR>HS": 1150,
     "HS>IRR": 1150,
     "HN>HS": 1500,
@@ -77,8 +78,74 @@
     "local_random": 400,
     "HN>TW": 150
   },
+  "reference_counts": {
+    "_about": "Published counts near the loop, for reference only; no script reads this block. None was taken on the loop roads.",
+    "indiranagar_domlur_2025": {
+      "source": "Corridor project report (dpr-omr-to-silk-board.pdf) section 5.1, table 5-1; 25 Apr 2025, 6 am-8 pm, one working day",
+      "where": "100 Feet Road / Inner Ring Road between Indiranagar and Domlur, about 6 km north of junction A",
+      "vehicles_14h": 27807,
+      "motor_vehicles_14h": 27300,
+      "pcu_14h": 30137,
+      "by_direction_14h": {
+        "Indiranagar>Domlur": 16656,
+        "Domlur>Indiranagar": 11151
+      },
+      "vehicles_by_hour_both_ways": {
+        "08-09": 2430,
+        "09-10": 3167,
+        "10-11": 3869
+      },
+      "pcu_by_hour_both_ways": {
+        "06": 620,
+        "07": 959,
+        "08": 2692,
+        "09": 3338,
+        "10": 3996,
+        "11": 3333,
+        "12": 1885,
+        "13": 1795,
+        "14": 1545,
+        "15": 1666,
+        "16": 1947,
+        "17": 1734,
+        "18": 2158,
+        "19": 2463
+      }
+    },
+    "hosur_road_cordon_2024": {
+      "source": "Tunnel project report (Feb 2025) tables 54-56, cordon point 9, video count, Aug 2024, 24 hours",
+      "where": "Labelled 'NH-44 near Madiwala footbridge'; the report's survey map (figure 64) puts it south of Silk Board junction, so it includes Outer Ring Road traffic and is an upper bound for Hosur Road at the loop",
+      "vehicles_24h": {
+        "Adugodi>Electronic City": 117725,
+        "Electronic City>Adugodi": 114769
+      },
+      "morning_peak": {
+        "hour": "09:30-10:30",
+        "Adugodi>Electronic City": 7056,
+        "Electronic City>Adugodi": 9816,
+        "share_of_day_pct": 7
+      },
+      "evening_peak": {
+        "hour": "17:00-18:00",
+        "Adugodi>Electronic City": 9198,
+        "Electronic City>Adugodi": 6229,
+        "share_of_day_pct": 6
+      }
+    },
+    "madiwala_junction_design_flow": {
+      "source": "Corridor project report section 4.4.5; basis not stated",
+      "veh_per_h": [
+        2250,
+        2510
+      ]
+    },
+    "signals_drawing_2026": {
+      "source": "traffic-signals-under.pdf, 'Project road showing existing traffic signals', 23 Jan 2026, not to scale",
+      "finding": "Signal-10 at junction A (Sarjapura Road x Inner Ring Road). No signal at the Madiwala underpass junction B. Signal-11 on Hosur Road at Madiwala Road, south of B and outside the loop. Junction C is off the project road and not covered."
+    }
+  },
   "flyover_opened": {
-    "_tag": "DATA-derived: OD study expects 12,357-16,842 of 27,300 veh/day (45-62%) to divert to the elevated corridor; midpoint used",
+    "_tag": "DATA-derived, not from the loop: OD study expects 12,357-16,842 of the 27,300 vehicles counted in 14 hours between Indiranagar and Domlur (45-62%) to divert to the elevated corridor; midpoint used",
     "divert_share": 0.53,
     "applies_to": [
       "IRR>HS",
@@ -90,7 +157,7 @@
   "buses": {
     "_tag": "DATA for routes and timetabled times (BMTC GTFS by Vonter, ODbL, Monday service); ASSUMED dwell time",
     "dwell_s": 20,
-    "gtfs_dir_default": "/tmp/claude-1000/-home-hypnogoat-design-challenge/b3609c9a-c1dc-489c-ab28-96dbd4ba0545/scratchpad/gtfs/feed"
+    "gtfs_dir_default": "/home/hypnogoat/design_challenge/cache/bmtc-gtfs/feed"
   },
   "pedestrians": {
     "_tag": "ASSUMED - replace with the P1-P6 crossing counts from the walk",
@@ -128,5 +195,77 @@
       370,
       520
     ]
+  },
+  "proposals": {
+    "_about": "Proposals drawn on the website's Draw tab, turned into scenarios by scripts/make_proposal.py. Each scenario is today's network (no metro, tunnel or flyover) plus the drawing. A drawing says where, not how, so each entry records how each kind of mark is read. Same traffic, people and buses as the baseline.",
+    "proposal_151126": {
+      "label": "Planner proposal at C",
+      "file": "proposals/151126-231655-proposal.geojson",
+      "zebra_crossing": "signalised",
+      "zones": {
+        "Zone 1": "closed_to_traffic",
+        "Zone 2": "widen_footpath",
+        "Zone 3": "bus_stop"
+      },
+      "new_road": {
+        "lanes": 1,
+        "speed_kmh": 20
+      },
+      "new_footpath_width_m": 3.0,
+      "widen_footpath_to_m": 4.0,
+      "bus_bay_min_area_m2": 200,
+      "_readings": "Agreed 16 Nov 2026: zebras are signalised crossings (fixed plan as the trial crossings); Zone 1 islands closed to traffic; Zone 2 widened footpath (a guess); Zone 3 is the bus stop. ASSUMED by us: each Zone 3 shape takes over the nearest existing bus stop in the same direction; a shape of 200 m2 or more is an off-road bay where a stopped bus leaves the running lane; the two new roads are one-lane links at 20 km/h for all vehicles, each joining the road nearest its drawn ends and running in the direction traffic can flow - here free-left slip roads from Sarjapura Road (towards C) onto Hosur Road towards B, which the sketch stops a few metres short of; a zone touching less than 15 m of a road changes nothing on that road (drawing tolerance)."
+    },
+    "proposal_151126_actuated": {
+      "label": "Proposal, crossings favour traffic",
+      "network_from": "proposal_151126",
+      "crossing_control": {
+        "type": "actuated",
+        "vehicle_min_green_s": 20,
+        "vehicle_max_green_s": 90
+      },
+      "_note": "Same network as proposal_151126. The new crossings keep traffic green while vehicles keep coming (gaps of 3 s or less), up to 90 s, then give people 18 s. Stands in for a push-button crossing, which with this many people would be pressed every cycle."
+    },
+    "proposal_151126_nocross": {
+      "label": "Proposal without the new crossings",
+      "file": "proposals/151126-231655-proposal.geojson",
+      "zebra_crossing": "junction_only",
+      "zones": {
+        "Zone 1": "closed_to_traffic",
+        "Zone 2": "widen_footpath",
+        "Zone 3": "bus_stop"
+      },
+      "new_road": {
+        "lanes": 1,
+        "speed_kmh": 20
+      },
+      "new_footpath_width_m": 3.0,
+      "widen_footpath_to_m": 4.0,
+      "bus_bay_min_area_m2": 200,
+      "_note": "proposal_151126 with the two mid-block crossings left out: slip roads, bus bay and stops, footpaths only."
+    },
+    "baseline_whatif": {
+      "label": "Today, what-if traffic",
+      "file": null,
+      "demand_change": {
+        "SE>HS": {
+          "via_base_edge": "160334705#1",
+          "_note": "all of this flow is sent through C onto Hosur Road towards B, instead of via A and 100 Feet Road"
+        }
+      },
+      "_note": "WHAT-IF, not data: today's network, with the 250 veh/h assumed from Sarjapura Road (east of A) to Hosur Road (south of B) all routed through C. Paired with proposal_151126_whatif to show what the slip roads could do if that turn is busy."
+    },
+    "proposal_151126_whatif": {
+      "label": "Proposal, what-if traffic",
+      "network_from": "proposal_151126",
+      "demand_change": {
+        "SE>HS": {
+          "via_base_edge": "160334705#1",
+          "_note": "all of this flow is sent through C onto Hosur Road towards B, instead of via A and 100 Feet Road"
+        }
+      },
+      "_note": "WHAT-IF, not data: proposal_151126 with the same traffic change as baseline_whatif.",
+      "compare_with": "baseline_whatif"
+    }
   }
 }

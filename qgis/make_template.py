@@ -261,7 +261,7 @@ story = [
  ('About the data', 'Known gaps',
   "Business listings (shown as rings) are not checked on the ground. No source covers street vendors, tea stalls or informal stops. "
   "The contract is a tender: chainages and designs may change. The width survey covers 100 Feet Road only. Footpath sides are inferred "
-  "from LHS/RHS labels. Traffic figures cover the whole Indiranagar-Silk Board corridor and are projections. Bus timetables come from "
+  "from LHS/RHS labels. Traffic figures come from one 14-hour count between Indiranagar and Domlur, about 6 km north of the loop, and from projections; no traffic count exists for the loop. Bus timetables come from "
   f"BMTC's app and are indicative. {nrat('verify')} site-check items are not yet checked. Distances along each road are measured from "
   "its first junction (A, B or C)."),
 ]

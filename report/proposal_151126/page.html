@@ -1,0 +1,215 @@
+<title>Junction C Proposal Test</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column of plain report sections; figures run the full column width, tables scroll inside their own box. */
+:root {
+  --bg: #f6f5f1;          /* survey-sheet paper */
+  --surface: #ffffff;
+  --fg: #1d2326;
+  --muted: #5d6870;
+  --rule: #d9d6cc;
+  --accent: #0b6e7a;      /* signal teal */
+  --walk: #b0219a;        /* pedestrian magenta, as in the pictures */
+  --good: #2b7a3d;
+  --bad: #b23a2a;
+  --note-bg: #fbf3df;
+  --note-fg: #5b4410;
+  --font-display: "IBM Plex Sans Condensed", "Arial Narrow", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", Roboto, Arial, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15191b; --surface: #1d2326; --fg: #e8e6df; --muted: #a3acb2; --rule: #343c40;
+    --accent: #4fc1cf; --walk: #f07ae0; --good: #6fcf86; --bad: #f08a78; --note-bg: #2c2615; --note-fg: #ecd59b;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15191b; --surface: #1d2326; --fg: #e8e6df; --muted: #a3acb2; --rule: #343c40;
+  --accent: #4fc1cf; --walk: #f07ae0; --good: #6fcf86; --bad: #f08a78; --note-bg: #2c2615; --note-fg: #ecd59b;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 16px/1.6 var(--font-body); }
+.wrap { max-width: 980px; margin: 0 auto; padding-block: 32px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.prose { max-width: 68ch; }
+header { display: grid; gap: 8px; border-bottom: 2px solid var(--fg); padding-bottom: 20px; margin-bottom: 28px; }
+.eyebrow { font: 500 12px/1.4 var(--font-data); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font: 700 clamp(30px, 5vw, 44px)/1.1 var(--font-display); margin: 0; text-wrap: balance; }
+h2 { font: 700 24px/1.25 var(--font-display); margin: 44px 0 12px; text-wrap: balance; }
+h3 { font: 600 17px/1.3 var(--font-body); margin: 24px 0 8px; }
+p { margin: 0 0 12px; }
+.answer { font-size: 18px; background: var(--surface); border-left: 4px solid var(--walk); padding: 16px 20px; margin: 0; }
+.answer strong { color: var(--walk); }
+figure { margin: 18px 0 8px; }
+figure img, figure video { display: block; width: 100%; max-width: 100%; height: auto; border: 1px solid var(--rule); background: #000; }
+figcaption { font-size: 14px; color: var(--muted); margin-top: 8px; max-width: 80ch; }
+.tablebox { overflow-x: auto; margin: 14px 0; }
+table { border-collapse: collapse; width: 100%; min-width: 560px; background: var(--surface); font-size: 15px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font: 600 13px/1.3 var(--font-body); color: var(--muted); }
+td.n { font-family: var(--font-data); font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.best { color: var(--walk); font-weight: 600; }
+ul.points { padding-left: 1.2em; margin: 8px 0 12px; display: grid; gap: 6px; }
+.look { background: var(--surface); border: 1px solid var(--rule); padding: 14px 18px; margin: 14px 0; }
+.look h3 { margin-top: 0; }
+.key { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 14px; color: var(--muted); margin: 8px 0 0; padding: 0; list-style: none; }
+.key li { display: flex; align-items: center; gap: 6px; }
+.sw { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.note { background: var(--note-bg); color: var(--note-fg); padding: 14px 18px; margin: 14px 0; }
+.note strong { color: inherit; }
+details { background: var(--surface); border: 1px solid var(--rule); margin: 12px 0; }
+summary { cursor: pointer; padding: 12px 16px; font-weight: 600; }
+summary:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+details > .inner { padding: 0 16px 12px; }
+ol.fix { padding-left: 1.4em; display: grid; gap: 8px; }
+ol.fix b { font-weight: 600; }
+a { color: var(--accent); }
+footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--muted); }
+code { font-family: var(--font-data); font-size: .9em; }
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Madiwala loop · simulation · weekday 9:30–10:30 am · 5 runs per version</div>
+  <h1>Junction C proposal test</h1>
+  <p class="prose" style="color:var(--muted);margin:0">The planner's drawing for junction C (Hosur Road and Sarjapura Road, by St John's), run through the loop's traffic and pedestrian model against today's streets.</p>
+</header>
+
+<p class="answer prose">The proposal makes crossing near C <strong>clearly easier on foot</strong>. People walk about 40 m less to cross Hosur Road and 20 m less to cross Sarjapura Road, and crossing Sarjapura Road takes a minute less. Almost all of it comes from the two new signalised crossings. The vehicle results point the other way but are not calibrated yet.</p>
+
+<h2>What was tested</h2>
+<p class="prose">Today's network and traffic, plus the drawing: two new signalised crossings (Sarjapura Road about 105 m from C, Hosur Road about 120 m south of C), a free-left slip road from Sarjapura Road onto Hosur Road towards B, an off-road bus bay and two moved St John's bus stops, wider footpaths, and a new footpath across the corner.</p>
+<figure>
+  <img src="junction_before_after.png" alt="Junction C on satellite imagery, today on the left and with the proposal on the right, showing the new crossings, slip road, bus stop areas and footpaths">
+  <figcaption>Junction C as modelled. Imagery: Esri World Imagery.</figcaption>
+</figure>
+<p class="prose">Two variants show what drives the result: the proposal <b>without the new crossings</b>, and the proposal with <b>crossings that favour traffic</b> (vehicles keep the green while traffic keeps coming, 20–90 s, then people get 18 s).</p>
+
+<h2>Pedestrian results</h2>
+<div class="tablebox">
+<table>
+  <thead><tr><th>Crossing</th><th>Today</th><th>Proposal</th><th>Without new crossings</th><th>Crossings favour traffic</th></tr></thead>
+  <tbody>
+    <tr><td>Hosur Road: extra walk to reach a crossing</td><td class="n">259 m</td><td class="n best">217 m</td><td class="n">264 m</td><td class="n">216 m</td></tr>
+    <tr><td>Hosur Road: time to cross and reach the place</td><td class="n">4.9 min</td><td class="n best">4.1 min</td><td class="n">4.9 min</td><td class="n">4.3 min</td></tr>
+    <tr><td>Sarjapura Road: extra walk</td><td class="n">106 m</td><td class="n best">84 m</td><td class="n">114 m</td><td class="n">84 m</td></tr>
+    <tr><td>Sarjapura Road: time to cross and reach the place</td><td class="n">3.2 min</td><td class="n best">2.2 min</td><td class="n">3.4 min</td><td class="n">2.3 min</td></tr>
+    <tr><td>100 Feet Road: extra walk</td><td class="n">42 m</td><td class="n">42 m</td><td class="n">42 m</td><td class="n">42 m</td></tr>
+  </tbody>
+</table>
+</div>
+<ul class="points prose">
+  <li><b>The new crossings are used heavily:</b> about 920 people an hour on the Hosur Road one and 430 on the Sarjapura Road one. Most of them used to cross at C, where use drops from about 1,180 to 260 an hour.</li>
+  <li><b>The gains come from the crossings.</b> Without them, walking gets slightly longer, because the slip road adds one more road to cross at the corner.</li>
+  <li><b>Letting traffic go first keeps most of the gain:</b> people lose 8–15 s more per crossing than in the plain proposal.</li>
+  <li><b>Today is less predictable:</b> one of the five runs of today jammed and left people stuck on Hosur Road. The table uses the typical run there.</li>
+</ul>
+<figure>
+  <img src="walking.png" alt="Bar charts of extra walk and time lost per road for today, the proposal and the two variants">
+  <figcaption>Average of five runs; whiskers show the lowest and highest run.</figcaption>
+</figure>
+<figure>
+  <img src="where_people_cross.png" alt="Map of the loop with circles sized by people crossing per hour at each crossing, today and with the proposal">
+  <figcaption>People crossing per hour at each crossing. Blue: existing crossings and foot over bridges. Pink: the two new crossings.</figcaption>
+</figure>
+
+<h2>Before and after in the simulation</h2>
+<p class="prose">The same two minutes (10:00–10:02 am) with the same traffic, today on the left and the proposal on the right, at 8× speed. Simulated, not footage: the grey photo underneath is only for orientation.</p>
+<div class="look prose">
+  <h3>What to look for</h3>
+  <ul class="points">
+    <li><b>Today:</b> a stream of people walks up the Hosur Road footpaths to C and bunches at its crossings. Their faint trails show the detour.</li>
+    <li><b>Proposal:</b> people cross at the two new crossings (yellow dots on the pink bars) and the walk up to C mostly disappears.</li>
+    <li><b>Traffic:</b> queues stand behind the new crossings, especially on Hosur Road towards C. The slip road stays almost empty; see the caveat below.</li>
+  </ul>
+  <ul class="key">
+    <li><span class="sw" style="background:#f065ff"></span>person walking</li>
+    <li><span class="sw" style="background:#ffd43b"></span>person on a crossing</li>
+    <li><span class="sw" style="background:#4dabf7;border-radius:2px"></span>car</li>
+    <li><span class="sw" style="background:#ff922b;border-radius:2px"></span>two-wheeler</li>
+    <li><span class="sw" style="background:#fa5252;border-radius:2px"></span>bus</li>
+  </ul>
+</div>
+<figure>
+  <video controls muted playsinline preload="metadata" poster="still_C.png" src="clip_C.mp4"></video>
+  <figcaption>Junction C close-up.</figcaption>
+</figure>
+<figure>
+  <video controls muted playsinline preload="metadata" poster="still_loop.png" src="clip_loop.mp4"></video>
+  <figcaption>The whole loop, junctions A, B and C.</figcaption>
+</figure>
+
+<h2>Vehicles: direction only</h2>
+<div class="note prose"><strong>The vehicle side is not calibrated.</strong> No traffic has been counted on the loop and there are no turning counts at C, so read these as direction, not as measured losses.</div>
+<p class="prose">In the model the proposal slows Sarjapura Road towards C, Hosur Road in both directions and 100 Feet Road towards B, in all five runs. Queues from the two new crossings reach back to C and A. The slip road carries almost nothing, because almost no modelled traffic turns from Sarjapura Road towards B. That reflects missing data, not the design.</p>
+<figure>
+  <img src="changes.png" alt="Bar chart of the percentage change against today for walking and vehicle measures, for the proposal and the two variants">
+</figure>
+<figure>
+  <img src="loop_speeds.png" alt="Map of the loop coloured by average vehicle speed, today and with the proposal">
+  <figcaption>Average vehicle speed on each road and direction, km/h.</figcaption>
+</figure>
+
+<h2>Assumptions</h2>
+<details open>
+  <summary>Pedestrians (the results above rely on these)</summary>
+  <div class="inner tablebox"><table>
+    <thead><tr><th>What</th><th>Assumed</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td>Who crosses</td><td>Bus passengers (6 get on or off per bus, half cross), plus people going to hospitals and schools (60 an hour each), temples, parks and amenities (25), side streets (30), and 600 background walks an hour</td><td>Our estimate; no counts yet</td></tr>
+      <tr><td>Where they start and end</td><td>Within 60 m either side of each place, on the far side of the road</td><td>Our estimate</td></tr>
+      <tr><td>Walking speed</td><td>1.2 m/s; foot over bridge stairs 0.5 m/s</td><td>Standard values</td></tr>
+      <tr><td>Where people cross</td><td>Only at crossings and foot over bridges; nobody crosses through traffic</td><td>Model limit: real people do, so detours are an upper bound</td></tr>
+      <tr><td>Footpaths</td><td>Along every road OpenStreetMap shows; widths guessed</td><td>OpenStreetMap</td></tr>
+      <tr><td>Buses</td><td>BMTC timetable for the hour; 20 s at each stop</td><td>Unofficial timetable feed; stop time assumed</td></tr>
+    </tbody>
+  </table></div>
+</details>
+<details>
+  <summary>How the drawing was read</summary>
+  <div class="inner tablebox"><table>
+    <thead><tr><th>Drawn</th><th>Modelled as</th></tr></thead>
+    <tbody>
+      <tr><td>Zebra crossings (6)</td><td>Signalised, fixed 75 s cycle with 18 s for people. Four sit on C's own arms, which already have crossings, so two are new.</td></tr>
+      <tr><td>New roads (2)</td><td>One two-lane free-left slip road from Sarjapura Road onto Hosur Road towards B, at 20 km/h. The sketch stops short of the roads, so it joins the nearest ones; the modelled link is only 8 m long because the two carriageways meet beside C. It mainly lets left-turners skip C's signal.</td></tr>
+      <tr><td>Zone 1</td><td>Islands closed to traffic. No road runs there today, so nothing changes.</td></tr>
+      <tr><td>Zone 2</td><td>Footpaths widened to 4 m.</td></tr>
+      <tr><td>Zone 3</td><td>Bus stops. The large shape is an off-road bay for the Sarjapura Road stop; the small ones move two St John's stops next to the new crossings.</td></tr>
+      <tr><td>New footpath</td><td>A 70 m walkway across the corner.</td></tr>
+    </tbody>
+  </table></div>
+</details>
+<details>
+  <summary>Traffic (not relied on)</summary>
+  <div class="inner tablebox"><table>
+    <thead><tr><th>What</th><th>Assumed</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td>Vehicle volumes</td><td>12 flows between the loop's entry roads, 200–1,500 vehicles an hour each, plus 400 local trips</td><td>Our estimate; one flow borrowed from a count 6 km north</td></tr>
+      <tr><td>Hour</td><td>9:30–10:30 am, but volumes not raised for it</td><td>Published counts peak then</td></tr>
+      <tr><td>Vehicle mix</td><td>Two-wheelers 45%, cars 30%, autos 13%, the rest vans, goods vehicles and trucks</td><td>Indiranagar–Domlur count, April 2025</td></tr>
+      <tr><td>Signals</td><td>A and C adjust green to the queues (8–60 s); B has no signal</td><td>A and C assumed; B from official drawings</td></tr>
+      <tr><td>Routes</td><td>Each vehicle picks the shortest route at the start and keeps it</td><td>Model setting</td></tr>
+      <tr><td>Lanes</td><td>From OpenStreetMap, plus two-lane slip roads at B</td><td>Map, corrected by us</td></tr>
+    </tbody>
+  </table></div>
+</details>
+
+<h2>Making the model better</h2>
+<ol class="fix prose">
+  <li><b>Turning counts at A, B and C</b> for the peak hour, by vehicle type. This settles whether the slip road matters.</li>
+  <li><b>Pedestrian counts at each crossing and where people cross informally</b>, with wait times. This replaces our largest pedestrian estimate.</li>
+  <li><b>Signal timings at A and C</b>, and what actually happens at B.</li>
+  <li><b>Vehicles cleared per green</b> on the busiest approaches, and usable road width.</li>
+  <li><b>Travel times around the loop</b>, three runs each way, to check the model against the street.</li>
+  <li><b>Bus stop times at the St John's stops</b>, and how much of the lane a stopped bus blocks.</li>
+  <li><b>The planner's notes on the drawing:</b> what each zone is, and the crossing type.</li>
+  <li><b>Let drivers change route</b> once counts exist, so new links and new queues change where traffic goes.</li>
+  <li><b>Raise traffic volumes for 9:30–10:30</b> once the counts exist.</li>
+</ol>
+
+<footer>Simulated with SUMO on the OpenStreetMap network. Bus timetable: unofficial BMTC feed. Imagery: Esri World Imagery. Every setting is in the model's <code>config/assumptions.json</code>, marked as assumed or data.</footer>
+</div>

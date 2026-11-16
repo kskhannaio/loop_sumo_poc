@@ -15,7 +15,7 @@
 
 This repository contains a computer simulation of the Madiwala loop in Bengaluru: the triangle of
 *100 Feet Road*, *Hosur Road* and *Sarjapura Road* between junctions A, B and C. It recreates a
-weekday morning peak (8–9 am) with every vehicle, bus and pedestrian moving individually through a
+weekday morning peak (9:30–10:30 am) with every vehicle, bus and pedestrian moving individually through a
 model of the streets, and asks one question:
 
 #+begin_quote
@@ -58,7 +58,7 @@ is taken from OpenStreetMap and includes:
 
 The model is an /agent-based/ simulation: each vehicle and each pedestrian is an individual with
 its own origin, destination, speed and behaviour, rather than an averaged flow. Over the simulated
-hour and a half (7:30–9:15 am, with the first half hour as warm-up) the model contains roughly:
+hour and three quarters (9:00–10:45 am, with the first half hour as warm-up) the model contains roughly:
 
 - *14,000 vehicles*, in the mix measured in the corridor's origin–destination survey: 43%
   two-wheelers, 29% cars, 13% autos, and the remainder vans, goods autos, light commercial vehicles
@@ -234,6 +234,7 @@ added as further scenarios and compared against the same baseline, for example:
 - Street network: © OpenStreetMap contributors, Open Database Licence.
 - Bus timetable: unofficial BMTC GTFS feed compiled from the Namma BMTC app, Open Database Licence.
 - Vehicle mix and flyover diversion: origin–destination and toll analysis for the
-  Indiranagar–Silk Board corridor.
+  Indiranagar–Silk Board corridor. Its count was taken between Indiranagar and Domlur,
+  about 6 km north of the loop; nothing has been counted on the loop itself.
 - Crossing gaps, places people cross to reach, and bus stops: this study.
 - Simulation software: SUMO (Simulation of Urban MObility), Eclipse Foundation, open source.

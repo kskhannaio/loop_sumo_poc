@@ -248,8 +248,14 @@ def write_scenario(scn, spec):
         if scn == 'flyover_opened' and od in fly['applies_to']: vph = vph * (1 - fly['divert_share'])
         a, b = gw[o][0], gw[dst][1]
         if not a or not b or vph <= 0: report.append(f"  skipped OD {od}"); continue
+        extra = {}
+        ch = C.get('proposals', {}).get(scn, {}).get('demand_change', {}).get(od)     # what-if routing of a drawn-proposal scenario
+        if ch:
+            via = ch['via_base_edge']
+            piece = sorted(e.getID() for e in net.getEdges() if e.getID() == via or e.getID().startswith(via + '.'))
+            extra['via'] = piece[0]; report.append(f"  {scn}: {od} routed via {piece[0]} (what-if)")
         ET.SubElement(root, 'flow', id=f"od_{o}_{dst}", type='mix', begin=str(B), end=str(E), period=f"exp({vph / 3600:.5f})",
-                      attrib={'from': a.getID(), 'to': b.getID(), 'departLane': 'best', 'departSpeed': 'max', 'departPos': 'base'})
+                      attrib={'from': a.getID(), 'to': b.getID(), 'departLane': 'best', 'departSpeed': 'max', 'departPos': 'base', **extra})
     flows = list(root)
     vehicles = []
     for i, t in enumerate(spec['local']):
@@ -261,7 +267,31 @@ def write_scenario(scn, spec):
     for _, el in vehicles: root.append(el)
     ET.ElementTree(root).write(os.path.join(d, 'vehicles.rou.xml'))
 
-    # buses + their stops
+    # buses + their stops. A drawn proposal can move stops (net/<scenario>.proposal.json, from make_proposal.py): each
+    # drawn bus-stop shape takes over the existing stops on the road nearest to it (within 80 m), and a large shape is an
+    # off-road bay where the stopped bus leaves the running lane.
+    moves = json.load(open(P('net', f'{scn}.proposal.json')))['bus_stops'] if os.path.exists(P('net', f'{scn}.proposal.json')) else []
+    base_net = net_for('baseline') if moves else None
+    moved = {}
+    def relocate(s):
+        if not moves: return s['lonlat'], False, None
+        m = map_road(base_net, s['lonlat'], s['heading'], 'bus', 40)
+        if not m: return s['lonlat'], False, None
+        here = LL2M(s['lonlat'])
+        cands = [(z['edges_near_m'][m[0]], math.dist(here, LL2M(z['lonlat'])), k) for k, z in enumerate(moves)
+                 if m[0] in z['edges_near_m'] and math.dist(here, LL2M(z['lonlat'])) <= 80]
+        if not cands: return s['lonlat'], False, None
+        z = moves[min(cands)[2]]
+        moved.setdefault(z['feature'], set()).add(s['name'])
+        return z['lonlat'], z['bay'], m[0]                  # the stop moves along its own road, never onto another one
+    def on_road(lonlat, eid):
+        """(edge, lane, pos) on the piece of base edge eid nearest to lonlat, in this scenario's network."""
+        x, y = net.convertLonLat2XY(*lonlat)
+        pieces = [e for e in net.getEdges() if e.getID() == eid or e.getID().startswith(eid + '.')]
+        best = min(pieces, key=lambda e: sumolib.geomhelper.distancePointToPolygon((x, y), e.getShape()))
+        off = sumolib.geomhelper.polygonOffsetWithMinimumDistanceToPoint((x, y), best.getShape())
+        lane = next(l for l in best.getLanes() if l.allows('bus'))
+        return best.getID(), lane.getIndex(), off * best.getLength() / max(1e-6, sumolib.geomhelper.polyLength(best.getShape()))
     stops_add, stop_ids = ET.Element('additional'), {}
     broot = ET.Element('routes'); nb = 0
     for b in sorted(spec['buses'], key=lambda b: b['depart']):          # SUMO needs route files sorted by depart
@@ -269,7 +299,8 @@ def write_scenario(scn, spec):
         if not fa or not ta: continue
         el = ET.Element('trip', id=b['id'], type='bus', depart=str(b['depart']), attrib={'from': fa[0], 'to': ta[0], 'departLane': 'best'})
         for s in b['stops']:
-            m = map_road(net, s['lonlat'], s['heading'], 'bus', 40)
+            lonlat, bay, road = relocate(s)
+            m = on_road(lonlat, road) if road else map_road(net, lonlat, s['heading'], 'bus', 40)
             if not m: continue
             # stop on the bus lane that leads to the most onward edges (kerb lane on ties), so a bus that has
             # stopped can still continue straight or turn without an impossible lane change
@@ -282,13 +313,13 @@ def write_scenario(scn, spec):
             # lanes for their next turn (GTFS stop positions are approximate, so shifting upstream is acceptable)
             end = min(m[2] + 20, L - 50) if L > 95 else L - 1
             start = max(0.0, end - 40)
-            key = (m[0], li, round(end / 10))
+            key = (m[0], li, round(end / 10), bay)
             if key not in stop_ids:
                 sid = f"bs_{len(stop_ids)}"
                 stop_ids[key] = sid
                 ET.SubElement(stops_add, 'busStop', id=sid, lane=f"{m[0]}_{li}", startPos=f"{start:.1f}",
                               endPos=f"{max(end, start + 10):.1f}", name=s['name'], friendlyPos='true')
-            ET.SubElement(el, 'stop', busStop=stop_ids[key], duration=str(C['buses']['dwell_s']))
+            ET.SubElement(el, 'stop', busStop=stop_ids[key], duration=str(C['buses']['dwell_s']), **({'parking': 'true'} if bay else {}))
         broot.append(el); nb += 1
     ET.ElementTree(stops_add).write(os.path.join(d, 'busstops.add.xml'))
     ET.ElementTree(broot).write(os.path.join(d, 'buses.rou.xml'))
@@ -302,6 +333,11 @@ def write_scenario(scn, spec):
         ET.SubElement(pe, 'personTrip', attrib={'from': a[0], 'to': b[0], 'arrivalPos': f"{b[1]:.1f}"})
         npers += 1
     ET.ElementTree(proot).write(os.path.join(d, 'persons.rou.xml'))
+    for f, names in sorted(moved.items()):
+        z = next(z for z in moves if z['feature'] == f)
+        report.append(f"{scn}: drawn bus stop #{f} ({z['area_m2']} m2, {'off-road bay' if z['bay'] else 'kerbside'}) took over: {', '.join(sorted(names))}")
+    for z in moves:
+        if z['feature'] not in moved: report.append(f"{scn}: drawn bus stop #{z['feature']} took over no existing stop (none within 80 m on a road next to it)")
     report.append(f"{scn}: OD flows {len(flows) - len(VT) - 4}, local trips {len(vehicles)}, buses {nb} (of {len(spec['buses'])}), "
                   f"bus stops {len(stop_ids)}, people {npers} (unmapped {unmapped})")
     return report

@@ -16,3 +16,5 @@ qgis/*.gpkg
 # (contract drawing extraction moved to the corridor_pdf_pipeline repo)
 qgis/madiwala_contract/
 qgis/madiwala_contract.zip
+net/*_tls.add.xml
+net/*.proposal.json

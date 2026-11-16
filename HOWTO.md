@@ -1,8 +1,9 @@
 # How the SUMO model was built
 
 A traffic and pedestrian simulation of a ~2 km triangle of roads in Bengaluru (the "Madiwala loop", junctions A, B, C),
-for the 8–9 am peak. Three scenarios run on identical demand: `baseline` (today), `trial_crossings` (8 extra signalised
-pedestrian crossings) and `flyover_opened` (the crossings, with ~half the through traffic moved onto a new flyover).
+for the 9:30–10:30 am peak. Scenarios run on identical demand: `baseline` (today), `trial_crossings` (8 extra signalised
+pedestrian crossings), `flyover_opened` (the crossings, with ~half the through traffic moved onto a new flyover), and any
+proposal drawn on the website (see the end of this page).
 Everything is rebuilt from scratch by `python run.py`. Setup is in the [README](README.md).
 
 ## Terms you'll meet
@@ -32,12 +33,14 @@ SUMO ships as a pip package (`eclipse-sumo`); `sumolib` (bundled) reads networks
 
 | Step | Script | Notes |
 |---|---|---|
-| 0 | `prep_gtfs.py` | Cuts the 450 MB BMTC feed down to buses crossing the area 7:15–9:30 → `inputs/gtfs_peak.json` (committed). |
+| 0 | `prep_gtfs.py` | Cuts the 450 MB BMTC feed down to buses crossing the area during the simulated time, plus 15 minutes either side → `inputs/gtfs_peak.json` (committed). Re-run after changing `time`. |
 | 1 | `build_net.py` | Patches the OSM extract (config `network`: lane counts, entrance length, foot over bridges), then two `netconvert` passes: OSM → network (left-hand traffic, urban speeds, footpaths), then signals at A, B, C joined into one controller each. |
-| 2 | `make_scenarios.py` | Builds the trial network: splits both carriageways at each crossing position, joins the two split points into one junction, adds a crossing and a 75 s signal plan. |
+| 2 | `make_scenarios.py` | Builds the trial network: splits both carriageways at each crossing position, joins the two split points into one junction, adds a crossing and a 75 s signal plan (shared code in `netpatch.py`). |
+| 2b | `make_proposal.py` | Turns each proposal drawn on the website's Draw tab (config `proposals`) into a scenario on today's network. Says how every drawn feature was applied in `out/checks/<scenario>.txt`. |
 | 3 | `make_demand.py` | Writes a scenario-independent demand spec in lon/lat once (seeded), then maps it onto each network. |
 | 4 | `run_sim.py` | Runs each scenario with the sublane model (two-wheelers filter between cars) and pedestrian "striping" model. |
-| 5–6 | `metrics.py`, `report.py` | CSVs, charts, `report/REPORT.md`, `results.geojson`. |
+| 5–6 | `metrics.py`, `report.py` | CSVs, charts, `report/REPORT.md`, `results.geojson`. `junction_throughput.csv` counts vehicles leaving each junction, 40 m down every exit, so traffic using a drawn slip road still counts. |
+| – | `seeds.py`, `compare.py` | Five runs with different random seeds for one scenario (`out/seeds/`), and a paired comparison of two scenarios over the same seeds. |
 
 All assumed numbers (volumes, signal timings, pedestrian rates) are in `config/assumptions.json`.
 
@@ -83,7 +86,7 @@ All assumed numbers (volumes, signal timings, pedestrian rates) are in `config/a
 
 - **Different volumes or timings:** edit `config/assumptions.json`, then `python run.py --from demand`.
 - **Move or add trial crossings:** edit `trial_crossings` in the same file (metres along each road), then `python run.py --from scenarios`.
-- **New scenario:** add its name to `SCENARIOS` in `scripts/common.py`, build its network in `make_scenarios.py`, and adjust demand in `make_demand.py` if it changes traffic.
+- **New scenario:** for a drawn proposal, see the end of this page. Otherwise add its name to `SCENARIOS` in `scripts/common.py`, build its network in `make_scenarios.py`, and adjust demand in `make_demand.py` if it changes traffic.
 - **Watch it:** `python view.py trial_crossings`.
 
 ## Run options
@@ -146,3 +149,26 @@ python3 qgis/make_template.py                                # base template (if
 python3 qgis/make_contract_template.py                       # reads ../corridor_pdf_pipeline/out
 ```
 The zip is derived from the tender drawings and is not committed.
+
+## Testing a proposal drawn on the website
+
+1. Save the file from the Draw tab into `proposals/`.
+2. Add an entry under `proposals` in `config/assumptions.json`: the file, and how to read it. A drawing says where, not
+   how, so the entry says what a zebra means (only `signalised` so far), what each zone label does (`closed_to_traffic`,
+   `widen_footpath`, `bus_stop`), and the lanes and speed of new roads. Write down any reading agreed with the planner.
+3. `python run.py --from proposals --scenarios <name>` builds and runs it once; read `out/checks/<name>.txt` first,
+   which lists every drawn feature and what the model did with it (or why it skipped it).
+4. `python scripts/seeds.py baseline` and `python scripts/seeds.py <name>`, then `python scripts/compare.py baseline <name>`.
+   Vehicle results move by about a quarter between seeds, so only changes that hold in every seed are called gains or losses.
+
+What the reader does with each kind of mark:
+- **Zebra / signalised crossing**: at a junction arm that already has a crossing, nothing; mid-block, the same signalised
+  crossing as the trial crossings.
+- **New road**: a one-way link joining the roads nearest its two ends, in the direction traffic can flow; connected to
+  every lane of both roads.
+- **New footpath**: a footway between the footpaths of the two nearest roads.
+- **Zones**: `closed_to_traffic` turns a road inside the shape into footway only if 15 m or more of it lies inside (smaller
+  overlaps are drawing tolerance); `widen_footpath` widens footpaths inside the shape; `bus_stop` moves the nearest existing
+  stops on the road beside the shape into it, along the same road, and a shape of 200 m² or more becomes an off-road bay
+  where the stopped bus leaves the running lane.
+

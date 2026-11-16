@@ -10,7 +10,11 @@ import sumolib  # noqa: E402
 
 BIN = lambda name: os.path.join(SUMO_HOME, 'bin', name)
 P = lambda *a: os.path.join(ROOT, *a)
+# run outputs; scripts/seeds.py points SIM_OUT at out/seeds/<seed> to run several seeds side by side
+O = lambda *a: P(os.environ.get('SIM_OUT', 'out'), *a)
 SCENARIOS = ['baseline', 'trial_crossings', 'flyover_opened']
+# drawn proposals (config "proposals", built by make_proposal.py) run as further scenarios
+SCENARIOS += [k for k in json.load(open(os.path.join(ROOT, 'config', 'assumptions.json'))).get('proposals', {}) if not k.startswith('_')]
 SIDES = ['AB', 'BC', 'CA']
 SIDE_NAME = {'AB': '100 Feet Road', 'BC': 'Hosur Road', 'CA': 'Sarjapura Road'}
 JUNCTIONS = {'A': (77.620965, 12.927461), 'B': (77.618093, 12.924584), 'C': (77.614971, 12.929885)}

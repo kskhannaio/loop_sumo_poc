@@ -3,15 +3,15 @@
 
   python run.py                     network -> scenarios -> demand -> runs -> metrics -> report
   python run.py --gtfs PATH         also re-extract bus trips from a GTFS folder first
-  python run.py --from STEP         start at a step: net | scenarios | demand | sim | metrics | report
-  python run.py --scenarios a,b     only simulate these scenarios (baseline,trial_crossings,flyover_opened)
+  python run.py --from STEP         start at a step: net | scenarios | proposals | demand | sim | metrics | report
+  python run.py --scenarios a,b     only simulate these scenarios (baseline,trial_crossings,flyover_opened, and any in config proposals)
 """
 import argparse, os, subprocess, sys, time
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PY = sys.executable
-STEPS = ['net', 'scenarios', 'demand', 'sim', 'metrics', 'report']
-SCRIPT = {'net': 'build_net.py', 'scenarios': 'make_scenarios.py', 'demand': 'make_demand.py',
+STEPS = ['net', 'scenarios', 'proposals', 'demand', 'sim', 'metrics', 'report']
+SCRIPT = {'net': 'build_net.py', 'scenarios': 'make_scenarios.py', 'proposals': 'make_proposal.py', 'demand': 'make_demand.py',
           'sim': 'run_sim.py', 'metrics': 'metrics.py', 'report': 'report.py'}
 
 ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)

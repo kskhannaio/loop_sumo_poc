@@ -9,18 +9,23 @@ Writes out/metrics/*.csv and out/metrics/metrics.json:
   buses.csv            bus travel time and delay
 """
 import collections, csv, json, math, os, statistics as stt, xml.etree.ElementTree as ET
-from common import P, SCENARIOS, SIDES, SIDE_NAME, JUNCTIONS, cfg, hhmm, read_net, carriageways, centrelines, LL2M
+from common import O, P, SCENARIOS, SIDES, SIDE_NAME, JUNCTIONS, cfg, hhmm, read_net, carriageways, centrelines, LL2M, sumolib
 import make_demand as MD
 
 C = cfg(); T = C['time']
 M0, M1 = hhmm(T['metrics_begin']), hhmm(T['metrics_end'])
-os.makedirs(P('out', 'metrics'), exist_ok=True)
+os.makedirs(O('metrics'), exist_ok=True)
 meta = {r['id']: r for r in csv.DictReader(open(P('demand', 'person_meta.csv')))}
 q = lambda xs, p: (sorted(xs)[min(len(xs) - 1, int(p * len(xs)))] if xs else float('nan'))
 mean = lambda xs: (sum(xs) / len(xs) if xs else float('nan'))
 
 def carriageway_edges(net, scn):
-    """ordered SUMO edge ids along each loop carriageway (by sampling its geometry every 8 m)."""
+    """Ordered SUMO edge ids of each loop carriageway, junction to junction.
+
+    The carriageway line is sampled every 8 m and matched to edges; an edge is kept only if it runs along the line
+    (most of it within 15 m, pointing the same way). That drops side streets and the approach road before the first
+    junction, which sit near the line only at the junctions. The kept ends are then joined by the shortest drivable
+    path, so the list is one continuous route with nothing counted twice."""
     out = {}
     for key, coords in carriageways().items():
         pts = [net.convertLonLat2XY(*c) for c in coords]
@@ -32,13 +37,76 @@ def carriageway_edges(net, scn):
                 lon, lat = net.convertXY2LonLat(x, y)
                 m = MD.map_road(net, (lon, lat), (b[0] - a[0], b[1] - a[1]), 'passenger', 12)
                 if m and (not seq or seq[-1] != m[0]): seq.append(m[0])
-        out[key] = list(dict.fromkeys(seq))
+        seq = list(dict.fromkeys(seq))
+
+        def near(p):                                   # (distance to the line, direction of the line there)
+            best = (1e9, (1, 0))
+            for a, b in zip(pts, pts[1:]):
+                dx, dy = b[0] - a[0], b[1] - a[1]; L2 = dx * dx + dy * dy or 1
+                t = max(0, min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / L2))
+                d = math.dist(p, (a[0] + t * dx, a[1] + t * dy))
+                if d < best[0]: best = (d, (dx / math.sqrt(L2), dy / math.sqrt(L2)))
+            return best
+        def along(eid, reach=15, cos=0.7):
+            shp = net.getEdge(eid).getShape(); samp = []
+            for a, b in zip(shp, shp[1:]):
+                k = max(1, int(math.dist(a, b) // 5))
+                samp += [((a[0] + (b[0] - a[0]) * i / k, a[1] + (b[1] - a[1]) * i / k), (b[0] - a[0], b[1] - a[1])) for i in range(k + 1)]
+            ok = 0
+            for p, (ex, ey) in samp:
+                d, (lx, ly) = near(p); el = math.hypot(ex, ey) or 1
+                ok += d <= reach and (ex * lx + ey * ly) / el > cos
+            return ok >= 0.6 * len(samp)
+        keep = [e for e in seq if along(e)]
+        # join the two ends through edges that stay near the line (looser test, so short links at junctions qualify)
+        dist, prev, todo = {keep[0]: 0.0}, {}, [keep[0]]
+        while todo:
+            cur = min(todo, key=dist.get); todo.remove(cur)
+            if cur == keep[-1]: break
+            for nxt in net.getEdge(cur).getOutgoing():
+                nid = nxt.getID()
+                if not nxt.allows('passenger') or not (nid in keep or along(nid, 25, 0.3)): continue
+                d = dist[cur] + nxt.getLength() * (1 if nid in keep else 3)      # prefer the matched road over a parallel lane
+                if d < dist.get(nid, 1e18):
+                    dist[nid] = d; prev[nid] = cur
+                    if nid not in todo: todo.append(nid)
+        if keep[-1] in prev or len(keep) == 1:
+            path = [keep[-1]]
+            while path[-1] in prev: path.append(prev[path[-1]])
+            out[key] = path[::-1]
+        else: out[key] = keep                           # ends not joined: fall back to the matched edges
     return out
 
-rows_sum, rows_ped, rows_veh, rows_q, rows_x, rows_bus = [], [], [], [], [], []
+def junction_exits():
+    """Count points for vehicles leaving each loop junction, from today's network: one point 40 m down every road that
+    leaves the junction, as (junction, road name, lon/lat, heading). A point that far out also counts traffic that
+    skips the junction on a slip road drawn in a proposal."""
+    base = read_net(P('net', 'baseline.net.xml'))
+    radius = {'A': 40, 'B': 40, 'C': 48}
+    out = []
+    for j, ll in JUNCTIONS.items():
+        x, y = base.convertLonLat2XY(*ll)
+        nodes = {n.getID() for n in base.getNodes() if math.dist(n.getCoord(), (x, y)) <= radius[j]
+                 and len([e for e in n.getIncoming() + n.getOutgoing() if e.allows('passenger')]) >= 3}
+        for nid in nodes:
+            for e in base.getNode(nid).getOutgoing():
+                if not e.allows('passenger') or e.getToNode().getID() in nodes: continue
+                d, cur = 40.0, e
+                while cur.getLength() < d:                    # walk on along the road if the first piece is short
+                    nxt = [o for o in cur.getOutgoing() if o.allows('passenger') and o.getToNode().getID() not in nodes]
+                    if not nxt: break
+                    d -= cur.getLength(); cur = max(nxt, key=lambda o: o.getPriority())
+                pos = min(d, cur.getLength() - 1)
+                px, py = sumolib.geomhelper.positionAtShapeOffset(cur.getShape(), pos)
+                qx, qy = sumolib.geomhelper.positionAtShapeOffset(cur.getShape(), min(cur.getLength(), pos + 2))
+                out.append((j, e.getName() or e.getID(), base.convertXY2LonLat(px, py), (qx - px, qy - py)))
+    return out
+EXITS = junction_exits()
+
+rows_sum, rows_ped, rows_veh, rows_q, rows_x, rows_bus, rows_jt = [], [], [], [], [], [], []
 geo = {"type": "FeatureCollection", "features": []}
 for scn in SCENARIOS:
-    d = P('out', scn)
+    d = O(scn)
     if not os.path.exists(os.path.join(d, 'tripinfo.xml')): continue
     net = read_net(P('net', f'{scn}.net.xml'))
     root = ET.parse(os.path.join(d, 'tripinfo.xml')).getroot()
@@ -105,6 +173,14 @@ for scn in SCENARIOS:
         rows_veh.append({'scenario': scn, 'side': side, 'road': SIDE_NAME[side], 'direction': f"{fr}>{to}", 'length_m': round(L),
                          'travel_time_s': round(tt, 1), 'free_flow_s': round(ff, 1), 'delay_s': round(tt - ff, 1),
                          'avg_speed_kmh': round(L / tt * 3.6, 1) if tt else None, 'vehicles_per_h': int(max(entered) if entered else 0)})
+    # ---- vehicles leaving each junction (all exits), per hour
+    through = collections.Counter()
+    for j, name, ll, hd in EXITS:
+        m = MD.map_road(net, ll, hd, 'passenger', 12)
+        rec = ed.get(m[0]) if m else None
+        n = int(float(rec.get('entered'))) if rec is not None and rec.get('entered') else 0
+        through[j] += n
+        rows_jt.append({'scenario': scn, 'junction': j, 'exit': name, 'edge': m[0] if m else None, 'vehicles_per_h': n})
     # ---- queues
     qd = collections.defaultdict(list)
     if os.path.exists(os.path.join(d, 'queues.xml')):
@@ -161,7 +237,7 @@ for scn in SCENARIOS:
     for label, n in sorted(agg.items()): rows_x.append({'scenario': scn, 'crossing': label, 'people_per_h': int(n)})
     # ---- sanity
     st = ET.parse(os.path.join(d, 'stats.xml')).getroot()
-    rows_sum.append({'scenario': scn,
+    rows_sum.append({'scenario': scn, **{f'veh_through_{j}_per_h': through[j] for j in JUNCTIONS},
                      'people_crossing_trips': len(allx), 'ped_trip_time_mean_s': round(mean([x[0] for x in allx]), 1),
                      'ped_time_lost_mean_s': round(mean([x[1] for x in allx]), 1),
                      'ped_detour_factor_median': round(stt.median([x[2] / max(1, x[3]) for x in allx]), 2) if allx else None,
@@ -183,11 +259,13 @@ for scn in SCENARIOS:
 
 def write(name, rows):
     if not rows: return
-    with open(P('out', 'metrics', name), 'w', newline='') as f:
+    with open(O('metrics', name), 'w', newline='') as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0])); w.writeheader(); w.writerows(rows)
 for name, rows in (('summary.csv', rows_sum), ('people_by_side.csv', rows_ped), ('vehicles_by_side.csv', rows_veh),
-                   ('queues.csv', rows_q), ('crossings_use.csv', rows_x), ('buses.csv', rows_bus)): write(name, rows)
-json.dump({'summary': rows_sum, 'people': rows_ped, 'vehicles': rows_veh, 'queues': rows_q, 'crossings': rows_x, 'buses': rows_bus},
-          open(P('out', 'metrics', 'metrics.json'), 'w'), indent=1)
-json.dump(geo, open(P('out', 'metrics', 'results.geojson'), 'w'))
+                   ('queues.csv', rows_q), ('crossings_use.csv', rows_x), ('buses.csv', rows_bus),
+                   ('junction_throughput.csv', rows_jt)): write(name, rows)
+json.dump({'summary': rows_sum, 'people': rows_ped, 'vehicles': rows_veh, 'queues': rows_q, 'crossings': rows_x, 'buses': rows_bus,
+           'junction_throughput': rows_jt},
+          open(O('metrics', 'metrics.json'), 'w'), indent=1)
+json.dump(geo, open(O('metrics', 'results.geojson'), 'w'))
 for r in rows_sum: print(r)

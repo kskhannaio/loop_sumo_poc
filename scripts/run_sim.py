@@ -5,7 +5,7 @@ collisions), edgedata.xml (vehicles + people per edge, 08:00-09:00, incl. crossi
 detectors on every approach to the A/B/C and trial signals), sumo.log.
 """
 import math, os, sys, time, xml.etree.ElementTree as ET
-from common import BIN, P, SCENARIOS, JUNCTIONS, cfg, hhmm, run, read_net
+from common import BIN, O, P, SCENARIOS, JUNCTIONS, cfg, hhmm, run, read_net
 
 C = cfg(); T = C['time']
 B, E = hhmm(T['sim_begin']), hhmm(T['sim_end'])
@@ -19,6 +19,8 @@ def signal_ids(net, scn):
         x = sum(n.getCoord()[0] for n in nodes) / len(nodes); y = sum(n.getCoord()[1] for n in nodes) / len(nodes)
         if tls.getID().startswith('cluster_xing'):
             out['X' + tls.getID().split('xing')[1].split('_')[0]] = tls.getID(); continue
+        if tls.getID().startswith('cluster_pxing'):                 # crossings drawn in a proposal
+            out['P' + tls.getID().split('pxing')[1].split('_')[0]] = tls.getID(); continue
         for j, ll in JUNCTIONS.items():
             if math.dist(net.convertLonLat2XY(*ll), (x, y)) < 60: out[j] = tls.getID()
     return out
@@ -41,16 +43,17 @@ def write_detectors(net, scn, path):
     return sig
 
 def run_scenario(scn):
-    d = P('out', scn); os.makedirs(d, exist_ok=True)
+    d = O(scn); os.makedirs(d, exist_ok=True)
     net = read_net(P('net', f'{scn}.net.xml'))
     sig = write_detectors(net, scn, os.path.join(d, 'detectors.add.xml'))
     adds = [P('demand', scn, 'busstops.add.xml'), os.path.join(d, 'detectors.add.xml')]
-    if scn != 'baseline': adds.append(P('net', 'trial_tls.add.xml'))
+    if scn in ('trial_crossings', 'flyover_opened'): adds.append(P('net', 'trial_tls.add.xml'))
+    elif os.path.exists(P('net', f'{scn}_tls.add.xml')): adds.append(P('net', f'{scn}_tls.add.xml'))
     cmd = [BIN('sumo'), '-n', P('net', f'{scn}.net.xml'),
            '-r', ','.join(P('demand', scn, f) for f in ('vehicles.rou.xml', 'buses.rou.xml', 'persons.rou.xml')),
            '-a', ','.join(adds),
            '--begin', str(B), '--end', str(E), '--step-length', str(T['step_length_s']),
-           '--lateral-resolution', str(T['lateral_resolution_m']), '--seed', str(T['seed']),
+           '--lateral-resolution', str(T['lateral_resolution_m']), '--seed', os.environ.get('SUMO_SEED', str(T['seed'])),
            '--pedestrian.model', 'striping', '--time-to-teleport', '300', '--ignore-route-errors', 'true',
            '--collision.action', 'warn', '--collision.mingap-factor', '0',
            '--tripinfo-output', os.path.join(d, 'tripinfo.xml'), '--tripinfo-output.write-unfinished', 'true',

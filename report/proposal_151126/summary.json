@@ -1,0 +1,34 @@
+{
+ "proposal_151126": {
+  "Vehicles leaving C": 4388.8,
+  "Vehicles finishing trips": 6280.4,
+  "Vehicle delay": 682.54,
+  "Bus delay": 871.6999999999999,
+  "Extra walk to cross": 121.28,
+  "Time lost walking": 53.1
+ },
+ "baseline": {
+  "Vehicles leaving C": 4801.6,
+  "Vehicles finishing trips": 6740.6,
+  "Vehicle delay": 486.96,
+  "Bus delay": 599.16,
+  "Extra walk to cross": 141.88,
+  "Time lost walking": 105.06
+ },
+ "proposal_151126_nocross": {
+  "Vehicles leaving C": 4732.2,
+  "Vehicles finishing trips": 6854.0,
+  "Vehicle delay": 585.78,
+  "Bus delay": 636.9,
+  "Extra walk to cross": 148.16,
+  "Time lost walking": 74.18
+ },
+ "proposal_151126_actuated": {
+  "Vehicles leaving C": 4296.6,
+  "Vehicles finishing trips": 6107.8,
+  "Vehicle delay": 655.38,
+  "Bus delay": 892.96,
+  "Extra walk to cross": 121.08,
+  "Time lost walking": 61.94
+ }
+}
