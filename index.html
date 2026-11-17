@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Madiwala Loop Data Flow</title>
+<meta name="description" content="How the Madiwala loop study turns PDFs, maps and timetables into the website, the QGIS templates and the simulation reports.">
+<style>
+:root { --bg: #f6f5f1; --surface: #ffffff; --fg: #1d2326; --muted: #5d6870; --rule: #d9d6cc; --accent: #0b6e7a; }
+@media (prefers-color-scheme: dark) { :root { --bg: #15191b; --surface: #1d2326; --fg: #e8e6df; --muted: #a3acb2; --rule: #343c40; --accent: #4fc1cf; } }
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 32px 16px 56px; }
+h1 { font-size: clamp(26px, 4vw, 36px); line-height: 1.15; margin: 0 0 8px; }
+h2 { font-size: 20px; margin: 36px 0 10px; }
+p { max-width: 70ch; margin: 0 0 12px; }
+.lede { color: var(--muted); }
+.chart { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 16px; overflow-x: auto; }
+.chart pre.mermaid { margin: 0; min-width: 640px; text-align: center; background: none; }
+[hidden] { display: none !important; }
+.repos { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 14px; }
+.repo { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 14px 16px; min-width: 0; }
+.repo h3 { margin: 0 0 4px; font-size: 16px; }
+.repo p { font-size: 14px; color: var(--muted); margin: 0 0 8px; }
+.repo ul { margin: 0; padding-left: 18px; font-size: 14px; }
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .9em; }
+footer { margin-top: 40px; font-size: 13px; color: var(--muted); }
+noscript, .fallback { display: block; font-size: 14px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Madiwala loop: how the data flows</h1>
+  <p class="lede">A tactical-urbanism study of the loop of 100 Feet Road, Hosur Road and Sarjapura Road in Bengaluru. Three repositories turn PDFs, maps and bus timetables into a study website, QGIS templates for planners, and simulation reports.</p>
+
+  <h2>The flow</h2>
+  <div class="chart">
+<pre class="mermaid">
+flowchart TD
+  PDF["Project PDFs<br/>tender drawings · OD study · metro survey · tunnel plans"]
+  OSM["OpenStreetMap"]
+  GTFS["BMTC bus timetable"]
+
+  subgraph PIPE["PDF pipeline · cad_drawings_extraction"]
+    P1["Place the sheets on the map,<br/>trace and name the structures,<br/>read the traffic tables"]
+    EXP["exports/"]
+    P1 --> EXP
+  end
+
+  subgraph WEB["Study website · corridor_design_challenge"]
+    SITE["Map site<br/>What's planned · Simulation · Draw tab"]
+  end
+
+  subgraph SIM["Simulation · loop_sumo_poc"]
+    QGIS["QGIS templates<br/>for planners"]
+    PROP["Proposal drawing<br/>(GeoJSON)"]
+    SUMO["SUMO model<br/>today and each proposal"]
+    REP["Reports<br/>results · pictures · videos"]
+    QGIS -- "drawn in QGIS" --> PROP
+    PROP --> SUMO --> REP
+  end
+
+  PDF --> P1
+  OSM --> P1
+  EXP -- "plans.geojson" --> SITE
+  EXP -- "GeoPackage + sheets" --> QGIS
+  EXP -- "traffic tables" --> SUMO
+  OSM --> SUMO
+  GTFS --> SUMO
+  SITE -- "drawn on the Draw tab" --> PROP
+  REP -. "today's results" .-> SITE
+
+  classDef src fill:#ece9e0,stroke:#8a8576,color:#1d2326
+  classDef pipe fill:#e3f1f3,stroke:#0b6e7a,color:#1d2326
+  classDef web fill:#fdebd8,stroke:#d9480f,color:#1d2326
+  classDef sim fill:#ece6fb,stroke:#5f3dc4,color:#1d2326
+  class PDF,OSM,GTFS src
+  class P1,EXP pipe
+  class SITE web
+  class QGIS,PROP,SUMO,REP sim
+</pre>
+    <span class="fallback" id="fallback" hidden>The chart could not load. In words: the project PDFs and OpenStreetMap go into the PDF pipeline, which exports a layer for the website, a GeoPackage for the QGIS templates, and the traffic tables. The simulation repo builds the QGIS templates and the SUMO model (with OpenStreetMap and the bus timetable). Proposals drawn on the website's Draw tab or in QGIS become simulation scenarios, and the results become reports; today's results also go back to the website.</span>
+  </div>
+
+  <h2>The three repositories</h2>
+  <div class="repos">
+    <div class="repo">
+      <h3><a href="https://github.com/kskhannaio/cad_drawings_extraction">cad_drawings_extraction</a></h3>
+      <p>PDF pipeline. Given the PDFs, ends with finished files in <code>exports/</code>.</p>
+      <ul>
+        <li><code>python main.py</code> runs every step</li>
+        <li><code>exports/website/plans.geojson</code></li>
+        <li><code>exports/qgis/corridor_drawings.gpkg</code> and sheets</li>
+        <li><code>exports/od/</code> traffic tables</li>
+      </ul>
+    </div>
+    <div class="repo">
+      <h3><a href="https://github.com/kskhannaio/corridor_design_challenge">corridor_design_challenge</a></h3>
+      <p>The study website, a single map page with tabs.</p>
+      <ul>
+        <li><a href="https://kskhannaio.github.io/corridor_design_challenge/">Open the website</a></li>
+        <li><code>scripts/build_*.py</code> make its data files</li>
+        <li>Draw tab saves a proposal file for the simulation</li>
+      </ul>
+    </div>
+    <div class="repo">
+      <h3><a href="https://github.com/kskhannaio/loop_sumo_poc">loop_sumo_poc</a></h3>
+      <p>Traffic and pedestrian simulation, QGIS templates and reports.</p>
+      <ul>
+        <li><code>python run.py</code> builds and runs the model</li>
+        <li><code>scripts/make_proposal.py</code> turns a drawing into a scenario</li>
+        <li><code>qgis/</code> builds the planner templates</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Reports</h2>
+  <ul>
+    <li><a href="report/proposal_151126/">Junction C proposal test</a>: the planner's drawing for junction C against today's streets, with pedestrian results, videos and assumptions.</li>
+  </ul>
+
+  <footer>Map data © OpenStreetMap contributors. Simulation with SUMO (Eclipse Foundation).</footer>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+(function () {
+  if (!window.mermaid) { document.getElementById('fallback').hidden = false; return; }
+  var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  mermaid.initialize({ startOnLoad: true, theme: dark ? 'dark' : 'neutral', securityLevel: 'strict',
+                       themeVariables: { fontSize: '16px', fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif' },
+                       flowchart: { htmlLabels: true, curve: 'basis', nodeSpacing: 40, rankSpacing: 55, useMaxWidth: true } });
+})();
+</script>
+</body>
+</html>
