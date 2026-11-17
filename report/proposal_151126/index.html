@@ -85,6 +85,19 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--rule);
 code { font-family: var(--font-data); font-size: .9em; }
 .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px; }
 .grid2 figure { margin: 0; min-width: 0; }
+
+/* lightbox: click a picture to see it large */
+figure img { cursor: zoom-in; }
+.lightbox { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center;
+  background: rgba(10, 12, 13, .92); padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px))
+  max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); cursor: zoom-out; }
+.lightbox[hidden] { display: none; }
+.lightbox img { max-width: 100%; max-height: calc(100% - 40px); width: auto; height: auto; border: 0; background: none; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+.lightbox figcaption { position: absolute; left: 0; right: 0; bottom: 12px; text-align: center; color: #d6d9db; font-size: 14px; padding: 0 16px; }
+.lightbox button { position: absolute; top: max(12px, env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px));
+  width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,.3); background: rgba(0,0,0,.4); color: #fff;
+  font-size: 22px; line-height: 1; cursor: pointer; }
+.lightbox button:focus-visible, figure img:focus-visible { outline: 2px solid #4fc1cf; outline-offset: 2px; }
 </style>
 </head>
 <body>
@@ -267,5 +280,33 @@ code { font-family: var(--font-data); font-size: .9em; }
 
 <footer>Simulated with SUMO on the OpenStreetMap network. Bus timetable: unofficial BMTC feed. Imagery: Esri World Imagery. Every setting is in the model's <code>config/assumptions.json</code>, marked as assumed or data.</footer>
 </div>
+<div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="Enlarged picture">
+  <button type="button" id="lightbox-close" aria-label="Close">×</button>
+  <img id="lightbox-img" alt="">
+  <figcaption id="lightbox-cap"></figcaption>
+</div>
+<script>
+(function () {
+  var box = document.getElementById('lightbox'), img = document.getElementById('lightbox-img'),
+      cap = document.getElementById('lightbox-cap'), closeBtn = document.getElementById('lightbox-close'), opener = null;
+  function open(el) {
+    opener = el; img.src = el.currentSrc || el.src; img.alt = el.alt;
+    var fig = el.closest('figure'), fc = fig && fig.querySelector('figcaption');
+    cap.textContent = fc ? fc.textContent : '';
+    box.hidden = false; document.body.style.overflow = 'hidden'; closeBtn.focus();
+  }
+  function close() {
+    box.hidden = true; img.removeAttribute('src'); document.body.style.overflow = '';
+    if (opener) opener.focus();
+  }
+  document.querySelectorAll('figure img').forEach(function (el) {
+    el.tabIndex = 0; el.setAttribute('role', 'button'); el.setAttribute('aria-label', 'Enlarge: ' + el.alt);
+    el.addEventListener('click', function () { open(el); });
+    el.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(el); } });
+  });
+  box.addEventListener('click', close);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !box.hidden) close(); });
+})();
+</script>
 </body>
 </html>
