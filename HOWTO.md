@@ -141,14 +141,19 @@ python3 qgis/make_template.py [path/to/website/data]
 
 `qgis/make_contract_template.py` builds `qgis/madiwala_contract.zip`: the planner template plus everything on the
 B-SMILE tender's 17 drawing sheets, from the loop south to Bommanahalli. It copies the base template and leaves
-`make_template.py` unchanged. The drawing data comes from the **PDF pipeline repo** (`../corridor_pdf_pipeline`),
-which places the sheets on the map, traces and names the structures:
+`make_template.py` unchanged. The drawing data comes ready-made from the **PDF pipeline repo**
+(`../corridor_pdf_pipeline`), which places the sheets on the map, traces and names the structures, and exports a
+GeoPackage and the sheet images in `exports/qgis/`; this repo only styles and packages them:
 
 ```sh
-(cd ../corridor_pdf_pipeline && ./.venv/bin/python main.py)   # extract from the PDFs (about 15 min first time)
+(cd ../corridor_pdf_pipeline && ./.venv/bin/python main.py)   # extract from the PDFs, ends with the export step
 python3 qgis/make_template.py                                # base template (if not built)
-python3 qgis/make_contract_template.py                       # reads ../corridor_pdf_pipeline/out
+python3 qgis/make_contract_template.py                       # reads ../corridor_pdf_pipeline/exports/qgis
 ```
+
+Numbers the simulation takes from the PDFs (vehicle mix, share diverting to the flyover) are checked against the
+pipeline's `exports/od/od_summary.json` by `python scripts/import_pipeline.py` (`--write` to apply). Any future
+conversion of the pipeline's shapes into simulation inputs belongs in that script, not in the pipeline.
 The zip is derived from the tender drawings and is not committed.
 
 ## Testing a proposal drawn on the website

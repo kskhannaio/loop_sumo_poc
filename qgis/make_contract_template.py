@@ -12,19 +12,22 @@ the loop south to Bommanahalli):
 make_template.py and its zip are not changed.
 
     python3 qgis/make_template.py                 # base template, if not built yet
-    python main.py   (in the corridor_pdf_pipeline repo)    # fit every sheet to OpenStreetMap
-    python main.py --from extract   (corridor_pdf_pipeline repo)     # extract everything
+    python main.py                (in the PDF pipeline repo, ../corridor_pdf_pipeline)   # ends with its export step
     python3 qgis/make_contract_template.py        # system Python with PyQGIS
+
+The drawing data comes ready-made from the pipeline's exports/qgis/: corridor_drawings.gpkg (structures, labels and the
+full drawing data) and sheets/ (the 17 tender sheets as images with world files). This script only styles and packages it.
 """
 import json, os, shutil, sys, zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 BASE = os.path.join(HERE, 'madiwala_proposals')
-SRC = os.environ.get('PIPELINE_OUT', os.path.join(HERE, '..', '..', 'corridor_pdf_pipeline', 'out'))   # the PDF pipeline repo's output
+SRC = os.environ.get('PIPELINE_EXPORTS', os.path.join(HERE, '..', '..', 'corridor_pdf_pipeline', 'exports', 'qgis'))   # the PDF pipeline repo's QGIS export
+SRC_GPKG = os.path.join(SRC, 'corridor_drawings.gpkg')
 PKG = os.path.join(HERE, 'madiwala_contract')
 ZIP = os.path.join(HERE, 'madiwala_contract.zip')
 for need, how in ((os.path.join(BASE, 'madiwala.qgz'), 'python3 qgis/make_template.py'),
-                  (os.path.join(SRC, 'contract_structures.geojson'), 'python main.py --from extract   (corridor_pdf_pipeline repo)')):
+                  (SRC_GPKG, 'python main.py --only export   (in the PDF pipeline repo)')):
     if not os.path.exists(need): sys.exit(f'missing {need} - run: {how}')
 
 from osgeo import gdal
@@ -45,7 +48,7 @@ gdal.UseExceptions()
 os.makedirs(os.path.join(PKG, 'contract_sheets'))
 SETS = {'gad': 'General alignment drawing', 'la': 'Land acquisition plan', 'topo': 'Topographical survey'}
 sheets = []
-for f in sorted(os.listdir(os.path.join(SRC, 'sheets'))):
+for f in sorted(os.listdir(os.path.join(SRC, 'sheets'))):              # png + world file (.pgw) + .prj from the pipeline
     if not f.endswith('.png'): continue
     code, n = f[:-4].split('_')
     tif = os.path.join(PKG, 'contract_sheets', f[:-4] + '.tif')
@@ -57,22 +60,12 @@ proj = QgsProject.instance()
 if not proj.read(os.path.join(PKG, 'madiwala.qgz')): sys.exit('could not open the copied project')
 proj.setTitle('Madiwala loop - study map, proposals and flyover contract drawings')
 
-# one structures layer: the tender's traced structures plus what the pipeline takes from the other sheets (metro survey
-# scans, the plan of the loop, the concept drawing). Each feature keeps its own "source".
-import json
-merged = {'type': 'FeatureCollection', 'features': []}
-for fname in ('contract_structures.geojson', 'metro_station.geojson', 'loop_plan.geojson', 'concept_tunnel.geojson'):
-    path = os.path.join(SRC, fname)
-    if os.path.exists(path): merged['features'] += json.load(open(path))['features']
-for f in merged['features']:
-    for k in ('name', 'name_confidence', 'name_basis', 'part_of', 'length_m'): f['properties'].setdefault(k, None)
-import tempfile
-ALL = os.path.join(tempfile.mkdtemp(), 'all_structures.geojson'); json.dump(merged, open(ALL, 'w'))
+# the pipeline's GeoPackage, copied layer by layer into the package's own GeoPackage under the template's layer names
 first = True
-for name, src in (('contract_structures', ALL), ('contract_labels', 'contract_labels.geojson'),
-                  ('drawing_lines', 'full_lines.geojsonl'), ('drawing_shapes', 'full_polygons.geojsonl'), ('drawing_text', 'full_text.geojsonl')):
-    lyr = QgsVectorLayer(os.path.join(SRC, src), name, 'ogr')
-    if not lyr.isValid(): sys.exit(f'cannot read {src}')
+for name, src in (('contract_structures', 'structures'), ('contract_labels', 'labels'),
+                  ('drawing_lines', 'drawing_lines'), ('drawing_shapes', 'drawing_shapes'), ('drawing_text', 'drawing_text')):
+    lyr = QgsVectorLayer(f'{SRC_GPKG}|layername={src}', name, 'ogr')
+    if not lyr.isValid(): sys.exit(f'cannot read layer {src} in {SRC_GPKG}')
     o = QgsVectorFileWriter.SaveVectorOptions(); o.driverName = 'GPKG'; o.layerName = name
     o.actionOnExistingFile = (QgsVectorFileWriter.ActionOnExistingFile.CreateOrOverwriteFile if first
                               else QgsVectorFileWriter.ActionOnExistingFile.CreateOrOverwriteLayer)
@@ -87,7 +80,7 @@ def fill_symbol(lyr, color, opacity, hatch=False):
     s = QgsSymbol.defaultSymbol(lyr.geometryType()); sl = s.symbolLayer(0); c = QColor(color)
     if hatch: sl.setBrushStyle(Qt.BrushStyle.FDiagPattern)
     else: c.setAlphaF(opacity)
-    sl.setColor(c); sl.setStrokeColor(QColor(color)); sl.setStrokeWidth(0.3)
+    sl.setColor(c); sl.setStrokeColor(QColor(color).darker(180)); sl.setStrokeWidth(0.4)
     return s
 def text_style(size=8, color='#212529', bold=True):
     fmt = QgsTextFormat(); f = QFont('Sans Serif'); f.setBold(bold); fmt.setFont(f); fmt.setSize(size); fmt.setColor(QColor(color))
@@ -95,30 +88,32 @@ def text_style(size=8, color='#212529', bold=True):
     return fmt
 
 # named structures
-STYLE = {
-    'proposed_deck': ('Proposed elevated corridor deck, Level-1 (loops, rotary, ramps)', '#f76707', 0.55, False),
-    'proposed_deck_level2': ('Proposed deck, second level over Level-1 (Silk Board)', '#e03131', 0.6, False),
-    'existing_flyover': ('Existing flyovers, incl. the Silk Board double-decker', '#74b816', 0.5, False),
-    'ejipura_flyover': ('Ejipura flyover approach (under construction)', '#4dabf7', 0.55, False),
-    'metro': ('Metro line and stations (elevated)', '#9c36b5', 0.5, False),
-    'metro_tunnel': ('Entry Ramp 08: ramp from Sarjapura Road into the road tunnel (underground)', '#d6336c', 0.9, True),
-    'tunnel_tube': ('North-South road tunnel: its two tubes (underground)', '#a61e4d', 0.9, True),
-    'tunnel_portal': ('Box the two tunnel tubes run into (portal or cut-and-cover section)', '#e64980', 0.45, False),
-    'tunnel_ramp': ('Tunnel ramps at St John\'s junction, incl. Exit Ramp 01', '#d6336c', 0.45, False),
-    'tunnel_strip': ('Tunnel approach connecting the road tunnel to the Audgodi loop', '#f06595', 0.6, False),
-    'subway': ('Pedestrian subway under Sarjapura Road at the metro station', '#1864ab', 0.7, False),
-    'metro_station': ('Metro Phase-3A stations (from the metro survey sheets)', '#7048e8', 0.6, False),
-    'metro_station_land': ('Land, parking and structures for St John\'s Hospital station', '#b197fc', 0.4, False),
+STYLE = {   # the same colours as the website's "What's planned" tab
+    'proposed_deck': ('Proposed elevated corridor deck, Level-1 (loops, rotary, ramps)', '#1971c2', 0.5, False),
+    'proposed_deck_level2': ('Proposed deck, second level over Level-1 (Silk Board)', '#0b3a75', 0.55, False),
+    'existing_flyover': ('Existing flyovers, incl. the Silk Board double-decker', '#495057', 0.5, False),
+    'ejipura_flyover': ('Ejipura flyover approach (under construction)', '#0c8599', 0.55, False),
+    'underpass': ('Underpass (existing)', '#212529', 0.5, False),
+    'metro': ('Metro line and stations (elevated)', '#862e9c', 0.6, False),
+    'metro_station': ('Metro Phase-3A stations (from the metro survey sheets)', '#5f3dc4', 0.6, False),
+    'metro_station_land': ('Land, parking and structures for St John\'s Hospital station', '#7950f2', 0.4, False),
     'metro_line': ('Metro Phase-3A line, St John\'s Hospital to Jakkasandra', '#5f3dc4', 0.6, False),
-    'metro_structure': ('Metro structure and land at junction A', '#845ef7', 0.5, False),
-    'underpass': ('Underpass (existing)', '#868e96', 0.6, False),
-    'bmrcl_land': ('BMRCL (metro) land', '#63e6be', 0.45, False),
-    'land_acquisition': ('Land to be acquired (land acquisition plan)', '#fab005', 0.6, False),
+    'metro_structure': ('Metro structure and land at junction A', '#7048e8', 0.55, False),
+    'metro_tunnel': ('Entry Ramp 08: ramp from Sarjapura Road into the road tunnel (underground)', '#c2255c', 0.9, True),
+    'tunnel_tube': ('Hebbal-Silk Board road tunnel: its two tubes (underground, cars only)', '#a61e4d', 0.9, True),
+    'tunnel_portal': ('TBM shaft, where the two bored tubes end', '#a61e4d', 0.45, False),
+    'tunnel_ramp': ('Tunnel ramps at St John\'s junction, incl. Exit Ramp 01', '#c2255c', 0.45, False),
+    'tunnel_strip': ('Tunnel approach connecting the road tunnel to the Audgodi loop', '#e64980', 0.5, False),
+    'subway': ('Pedestrian subway under Sarjapura Road at the metro station', '#2b8a3e', 0.6, False),
+    'land_acquisition': ('Land to be acquired (land acquisition plan)', '#f59f00', 0.45, False),
+    'bmrcl_land': ('BMRCL (metro) land', '#099268', 0.45, False),
+    'tunnel_land': ('Land needed for the road tunnel at St John\'s (tunnel land acquisition plan, Aug 2025)', '#8c5a2b', 0.45, False),
 }
 struct = load('contract_structures', 'Planned and existing structures (from the contract drawings)')
 struct.setRenderer(QgsCategorizedSymbolRenderer('layer', [QgsRendererCategory(k, fill_symbol(struct, c, o, h), l)
                                                          for k, (l, c, o, h) in STYLE.items()]))
 struct.setMapTipTemplate('<strong>[% "what" %]</strong><br>About [% format_number("area_m2", 0) %] m²<br>'
+                         + '[% if("statement" is not null, "statement" || \'<br>\', \'\') %]'
                          + '[% if("name_confidence" is not null, \'' + SMALL + 'Name is a best-guess reading (confidence: \' || "name_confidence" || \'): \' || "name_basis" || \'</span><br>\', \'\') %]' + SOURCE)
 struct.setDisplayExpression('"what"')
 
