@@ -120,10 +120,19 @@ struct.setDisplayExpression('"what"')
 labels = load('contract_labels', 'Labels from the contract drawings')
 m = QgsSimpleMarkerSymbolLayer(Qgis.MarkerShape.Circle, 1.4); m.setColor(QColor('#862e9c')); m.setStrokeColor(QColor('white'))
 labels.setRenderer(QgsSingleSymbolRenderer(QgsMarkerSymbol([m])))
-pal = QgsPalLayerSettings(); pal.fieldName = 'label'; pal.setFormat(text_style(8, '#862e9c'))
+# label text in the colour of the layer it names (as on the website); labels the drawings get wrong are greyed and say so
+pal = QgsPalLayerSettings(); pal.isExpression = True
+pal.fieldName = 'if("wrong" is not null, "label" || \' (wrong on the drawing)\', "label")'
+pal.setFormat(text_style(8, '#862e9c'))
+ddl = QgsPropertyCollection()
+ddl.setProperty(QgsPalLayerSettings.Property.Color, QgsProperty.fromExpression(
+    'case when "wrong" is not null then \'#868e96\' when "group" = \'roads\' then \'#0b3a75\' '
+    'when "group" = \'metro\' then \'#5f3dc4\' when "group" = \'tunnel\' then \'#a61e4d\' else \'#495057\' end'))
+pal.setDataDefinedProperties(ddl)
 labels.setLabeling(QgsVectorLayerSimpleLabeling(pal)); labels.setLabelsEnabled(True)
 labels.setMapTipTemplate('<strong>[% "label" %]</strong><br>' + SMALL + 'Text on the contract drawings ([% "source" %])'
-                         + '[% if("placed" is not null, \'. Placed \' || "placed", \'\') %]</span>')
+                         + '[% if("placed" is not null, \'. Placed \' || "placed", \'\') %]'
+                         + '[% if("wrong" is not null, \'<br><b>Wrong on the drawing:</b> \' || "wrong", \'\') %]</span>')
 
 # full drawing data, in the drawing's own colours
 lines = load('drawing_lines', 'All drawn lines (drawing colours)')
