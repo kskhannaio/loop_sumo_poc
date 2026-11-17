@@ -16,10 +16,10 @@ volumes, pedestrian volumes and signal timings are **assumptions** until the sit
 
 | Scenario | People crossing (trips) | Crossing trip time, s (Δ vs today) | Extra walk, m (Δ) | Time lost walking, s (Δ) | Vehicle delay per trip incl. waiting to enter, s (Δ) | Bus delay per trip, s (Δ) | Vehicles never let in | Teleports | Collisions |
 |---|---|---|---|---|---|---|---|---|---|
-| Today | 2610 | 210.3 (+0.0) | 145.1 (+0.0) | 78.4 (+0.0) | 710.6 (+0.0) | 882.4 (+0.0) | 1962 | 147 | 16 |
-| Trial crossings | 2609 | 146.6 (-63.7) | 94.6 (-50.5) | 51.2 (-27.2) | 489.3 (-221.3) | 805.7 (-76.7) | 1754 | 142 | 22 |
-| Trial + flyover open | 2609 | 143.1 (-67.2) | 94.9 (-50.2) | 47.9 (-30.5) | 264.1 (-446.5) | 367.8 (-514.6) | 217 | 95 | 9 |
-| Planner proposal at C | 2610 | 165.5 (-44.8) | 121.3 (-23.8) | 51.0 (-27.4) | 604.6 (-106.0) | 741.4 (-141.0) | 1408 | 219 | 24 |
+| Today | 2610 | 203.3 (+0.0) | 145.2 (+0.0) | 71.3 (+0.0) | 503.1 (+0.0) | 461.3 (+0.0) | 1923 | 122 | 22 |
+| Trial crossings | 2609 | 146.6 (-56.7) | 94.6 (-50.6) | 51.2 (-20.1) | 489.3 (-13.8) | 805.7 (+344.4) | 1754 | 142 | 22 |
+| Trial + flyover open | 2609 | 143.1 (-60.2) | 94.9 (-50.3) | 47.9 (-23.4) | 264.1 (-239.0) | 367.8 (-93.5) | 217 | 95 | 9 |
+| Planner proposal at C | 2608 | 186.0 (-17.3) | 121.3 (-23.9) | 71.4 (+0.1) | 581.9 (+78.8) | 1145.7 (+684.4) | 1467 | 127 | 18 |
 
 *Vehicles never let in* = demand that could not enter the network before the simulation ended — a sign the assumed volumes exceed what the entries and signals can carry (Madiwala is congested at peak, but the volumes are uncalibrated).
 
@@ -28,30 +28,30 @@ volumes, pedestrian volumes and signal timings are **assumptions** until the sit
 ### People crossing each road
 | Scenario | Road | Trips | Trip time mean s | p85 s | Time lost s | Walked m | Straight-line m | Extra m | Detour factor (median) |
 |---|---|---|---|---|---|---|---|---|---|
-| Today | 100 Feet Road | 825 | 121.5 | 174.5 | 66.5 | 75.5 | 33.5 | 42.0 | 1.5 |
-| Today | Hosur Road | 994 | 292.2 | 503.5 | 72.9 | 301.8 | 39.6 | 262.2 | 5.79 |
-| Today | Sarjapura Road | 791 | 200.0 | 310.5 | 97.8 | 140.1 | 34.6 | 105.5 | 2.96 |
+| Today | 100 Feet Road | 825 | 99.9 | 152.5 | 44.9 | 75.5 | 33.5 | 42.0 | 1.5 |
+| Today | Hosur Road | 994 | 292.6 | 499.5 | 73.2 | 302.0 | 39.6 | 262.4 | 5.79 |
+| Today | Sarjapura Road | 791 | 198.8 | 302.0 | 96.5 | 140.2 | 34.6 | 105.6 | 2.96 |
 | Trial crossings | 100 Feet Road | 824 | 91.0 | 120.5 | 22.6 | 94.0 | 33.5 | 60.5 | 1.41 |
 | Trial crossings | Hosur Road | 994 | 199.0 | 437.5 | 55.0 | 197.1 | 39.6 | 157.5 | 3.2 |
 | Trial crossings | Sarjapura Road | 791 | 138.8 | 213.0 | 76.2 | 85.7 | 34.6 | 51.1 | 2.36 |
 | Trial + flyover open | 100 Feet Road | 824 | 94.6 | 126.5 | 26.5 | 94.0 | 33.5 | 60.5 | 1.42 |
 | Trial + flyover open | Hosur Road | 994 | 198.4 | 466.0 | 54.1 | 197.8 | 39.6 | 158.2 | 3.19 |
 | Trial + flyover open | Sarjapura Road | 791 | 124.2 | 187.5 | 62.2 | 85.7 | 34.6 | 51.0 | 2.35 |
-| Planner proposal at C | 100 Feet Road | 825 | 111.7 | 178.0 | 56.6 | 75.5 | 33.5 | 42.0 | 1.5 |
-| Planner proposal at C | Hosur Road | 994 | 240.0 | 401.0 | 53.7 | 256.5 | 39.6 | 216.9 | 5.44 |
-| Planner proposal at C | Sarjapura Road | 791 | 128.0 | 234.5 | 41.6 | 118.3 | 34.6 | 83.7 | 2.29 |
+| Planner proposal at C | 100 Feet Road | 825 | 127.8 | 204.0 | 72.7 | 75.5 | 33.5 | 42.0 | 1.5 |
+| Planner proposal at C | Hosur Road | 992 | 282.2 | 431.5 | 95.7 | 256.6 | 39.6 | 217.0 | 5.46 |
+| Planner proposal at C | Sarjapura Road | 791 | 126.0 | 236.5 | 39.5 | 118.5 | 34.6 | 83.9 | 2.32 |
 
 ### Vehicles along each loop road
 ![vehicles](vehicles.png)
 
 | Scenario | Road | Direction | Length m | Travel time s | Free-flow s | Delay s | Avg speed km/h | Vehicles/h (max edge) |
 |---|---|---|---|---|---|---|---|---|
-| Today | 100 Feet Road | A>B | 417 | 41.4 | 30.0 | 11.4 | 36.2 | 984 |
-| Today | 100 Feet Road | B>A | 395 | 256.9 | 47.4 | 209.5 | 5.5 | 447 |
-| Today | Hosur Road | B>C | 535 | 268.5 | 40.6 | 227.9 | 7.2 | 1761 |
-| Today | Hosur Road | C>B | 505 | 67.5 | 35.9 | 31.6 | 26.9 | 1552 |
-| Today | Sarjapura Road | C>A | 529 | 228.2 | 38.1 | 190.1 | 8.4 | 903 |
-| Today | Sarjapura Road | A>C | 606 | 152.1 | 43.7 | 108.4 | 14.4 | 663 |
+| Today | 100 Feet Road | A>B | 417 | 57.6 | 30.0 | 27.7 | 26.0 | 1302 |
+| Today | 100 Feet Road | B>A | 395 | 358.0 | 47.4 | 310.6 | 4.0 | 295 |
+| Today | Hosur Road | B>C | 535 | 249.3 | 40.6 | 208.7 | 7.7 | 1436 |
+| Today | Hosur Road | C>B | 505 | 41.7 | 35.9 | 5.8 | 43.6 | 1456 |
+| Today | Sarjapura Road | C>A | 529 | 172.1 | 38.1 | 134.0 | 11.1 | 904 |
+| Today | Sarjapura Road | A>C | 606 | 124.2 | 43.7 | 80.6 | 17.6 | 753 |
 | Trial crossings | 100 Feet Road | A>B | 402 | 47.7 | 28.9 | 18.8 | 30.3 | 698 |
 | Trial crossings | 100 Feet Road | B>A | 381 | 285.4 | 45.7 | 239.6 | 4.8 | 373 |
 | Trial crossings | Hosur Road | B>C | 525 | 228.0 | 39.9 | 188.1 | 8.3 | 2089 |
@@ -64,20 +64,20 @@ volumes, pedestrian volumes and signal timings are **assumptions** until the sit
 | Trial + flyover open | Hosur Road | C>B | 573 | 72.5 | 44.6 | 28.0 | 28.4 | 1513 |
 | Trial + flyover open | Sarjapura Road | C>A | 517 | 161.6 | 37.2 | 124.3 | 11.5 | 760 |
 | Trial + flyover open | Sarjapura Road | A>C | 594 | 136.3 | 42.8 | 93.5 | 15.7 | 654 |
-| Planner proposal at C | 100 Feet Road | A>B | 417 | 72.3 | 30.0 | 42.4 | 20.7 | 1354 |
-| Planner proposal at C | 100 Feet Road | B>A | 395 | 153.1 | 47.4 | 105.7 | 9.3 | 810 |
-| Planner proposal at C | Hosur Road | B>C | 530 | 423.2 | 40.3 | 382.9 | 4.5 | 1692 |
-| Planner proposal at C | Hosur Road | C>B | 484 | 67.7 | 34.7 | 33.0 | 25.8 | 1484 |
-| Planner proposal at C | Sarjapura Road | C>A | 525 | 116.7 | 37.8 | 78.9 | 16.2 | 712 |
-| Planner proposal at C | Sarjapura Road | A>C | 576 | 243.4 | 41.4 | 201.9 | 8.5 | 711 |
+| Planner proposal at C | 100 Feet Road | A>B | 417 | 140.8 | 30.0 | 110.8 | 10.7 | 798 |
+| Planner proposal at C | 100 Feet Road | B>A | 395 | 77.9 | 47.4 | 30.4 | 18.3 | 1234 |
+| Planner proposal at C | Hosur Road | B>C | 530 | 279.1 | 40.3 | 238.8 | 6.8 | 1895 |
+| Planner proposal at C | Hosur Road | C>B | 484 | 55.8 | 34.7 | 21.1 | 31.3 | 1790 |
+| Planner proposal at C | Sarjapura Road | C>A | 525 | 94.6 | 37.8 | 56.8 | 20.0 | 720 |
+| Planner proposal at C | Sarjapura Road | A>C | 576 | 127.9 | 41.4 | 86.5 | 16.2 | 830 |
 
 ### Queues at signals
 ![queues](queues.png)
 
 | Scenario | Signal (A/B/C, X0-X7 = trial crossings) | Approach lanes | Mean queue, worst lane m | Max queue m |
 |---|---|---|---|---|
-| Today | A | 18 | 103.3 | 150.1 |
-| Today | C | 20 | 82.4 | 150.1 |
+| Today | A | 18 | 75.7 | 150.1 |
+| Today | C | 20 | 89.3 | 150.1 |
 | Trial crossings | A | 18 | 66.8 | 150.1 |
 | Trial crossings | C | 20 | 76.2 | 150.1 |
 | Trial crossings | X0 | 8 | 1.2 | 26.6 |
@@ -98,23 +98,23 @@ volumes, pedestrian volumes and signal timings are **assumptions** until the sit
 | Trial + flyover open | X5 | 12 | 10.6 | 122.3 |
 | Trial + flyover open | X6 | 12 | 6.4 | 70.6 |
 | Trial + flyover open | X7 | 12 | 3.0 | 140.7 |
-| Planner proposal at C | A | 18 | 74.9 | 150.1 |
-| Planner proposal at C | C | 14 | 86.2 | 150.1 |
-| Planner proposal at C | P0 | 12 | 99.7 | 150.0 |
-| Planner proposal at C | P1 | 8 | 80.4 | 119.8 |
+| Planner proposal at C | A | 18 | 42.4 | 122.4 |
+| Planner proposal at C | C | 14 | 80.6 | 150.1 |
+| Planner proposal at C | P0 | 12 | 67.1 | 150.0 |
+| Planner proposal at C | P1 | 8 | 62.6 | 119.8 |
 
 Queue detectors cover the last 150 m of each approach lane, so 150 m means "the queue reaches past the detector".
 
 ### Crossing use (people per hour)
 | Scenario | Crossing | People/h |
 |---|---|---|
-| Today | A | 1124 |
-| Today | B | 1635 |
-| Today | C | 1198 |
-| Today | FOB BC@612 | 469 |
-| Today | FOB CA@415 | 145 |
+| Today | A | 1127 |
+| Today | B | 1623 |
+| Today | C | 1199 |
+| Today | FOB BC@612 | 476 |
+| Today | FOB CA@415 | 146 |
 | Today | foot bridges off the loop | 9 |
-| Today | other junctions | 11711 |
+| Today | other junctions | 11713 |
 | Trial crossings | A | 1128 |
 | Trial crossings | B | 678 |
 | Trial crossings | C | 993 |
@@ -146,22 +146,22 @@ Queue detectors cover the last 150 m of each approach lane, so 150 m means "the 
 | Trial + flyover open | foot bridges off the loop | 8 |
 | Trial + flyover open | other junctions | 9344 |
 | Planner proposal at C | A | 1129 |
-| Planner proposal at C | B | 1580 |
-| Planner proposal at C | C | 296 |
-| Planner proposal at C | FOB BC@612 | 60 |
-| Planner proposal at C | FOB CA@415 | 124 |
-| Planner proposal at C | P0 | 429 |
-| Planner proposal at C | P1 | 916 |
+| Planner proposal at C | B | 1557 |
+| Planner proposal at C | C | 291 |
+| Planner proposal at C | FOB BC@612 | 59 |
+| Planner proposal at C | FOB CA@415 | 123 |
+| Planner proposal at C | P0 | 433 |
+| Planner proposal at C | P1 | 915 |
 | Planner proposal at C | foot bridges off the loop | 9 |
-| Planner proposal at C | other junctions | 10341 |
+| Planner proposal at C | other junctions | 10306 |
 
 ### Buses
 | Scenario | Buses (finished) | Trip time in area s | Delay mean s | Delay p85 s |
 |---|---|---|---|---|
-| Today | 119 | 1038.1 | 882.4 | 1686.4 |
+| Today | 155 | 613.6 | 461.3 | 714.3 |
 | Trial crossings | 128 | 963.2 | 805.7 | 1580.3 |
 | Trial + flyover open | 164 | 535.0 | 367.8 | 505.2 |
-| Planner proposal at C | 132 | 894.3 | 741.4 | 1282.6 |
+| Planner proposal at C | 111 | 1306.9 | 1145.7 | 2199.3 |
 
 ### Map
 ![map](map.png)

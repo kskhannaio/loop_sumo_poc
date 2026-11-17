@@ -1,0 +1,41 @@
+[
+ {
+  "n": 1,
+  "person": "p01846_cros",
+  "what": "Bus passenger at St John's Hospital stop, crossing Hosur Road",
+  "place": "St Johns Hospital bus stop",
+  "road": "Hosur Road",
+  "step_free": false,
+  "depart": 34393.5,
+  "today_s": 182,
+  "proposal_s": 129,
+  "today_m": 119,
+  "proposal_m": 83
+ },
+ {
+  "n": 2,
+  "person": "p01747_cros",
+  "what": "Bus passenger at St John's Hospital stop, crossing Sarjapura Road",
+  "place": "St Johns Hospital bus stop",
+  "road": "Sarjapura Road",
+  "step_free": false,
+  "depart": 34276.5,
+  "today_s": 206,
+  "proposal_s": 84,
+  "today_m": 78,
+  "proposal_m": 66
+ },
+ {
+  "n": 3,
+  "person": "p02643_cros",
+  "what": "Person who cannot use stairs, crossing Hosur Road from St Johns Hospital bus stop",
+  "place": "St Johns Hospital bus stop",
+  "road": "Hosur Road",
+  "step_free": true,
+  "depart": 35271.5,
+  "today_s": 165,
+  "proposal_s": 80,
+  "today_m": 140,
+  "proposal_m": 62
+ }
+]

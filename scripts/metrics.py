@@ -103,7 +103,7 @@ def junction_exits():
     return out
 EXITS = junction_exits()
 
-rows_sum, rows_ped, rows_veh, rows_q, rows_x, rows_bus, rows_jt = [], [], [], [], [], [], []
+rows_sum, rows_ped, rows_veh, rows_q, rows_x, rows_bus, rows_jt, rows_sf = [], [], [], [], [], [], [], []
 geo = {"type": "FeatureCollection", "features": []}
 for scn in SCENARIOS:
     d = O(scn)
@@ -123,6 +123,7 @@ for scn in SCENARIOS:
         length = sum(float(w.get('routeLength')) for w in walks)
         loss = sum(float(w.get('timeLoss')) for w in walks)
         ped[(m['kind'], m['side'])].append((dur, loss, length, float(m['straight_m'])))
+        if pi.get('type') == 'walker_stepfree': ped[('stepfree', m['kind'], m['side'])].append((dur, loss, length, float(m['straight_m'])))
     for side in SIDES:
         xs = ped[('crossing', side)]
         if not xs: continue
@@ -132,7 +133,13 @@ for scn in SCENARIOS:
                          'walk_m_mean': round(mean([x[2] for x in xs]), 1), 'straight_m_mean': round(mean([x[3] for x in xs]), 1),
                          'detour_factor_median': round(stt.median([x[2] / max(1, x[3]) for x in xs]), 2),
                          'extra_walk_m_mean': round(mean([x[2] - x[3] for x in xs]), 1)})
-    allx = [x for (k, s), v in ped.items() if k == 'crossing' for x in v]
+    allx = [x for k, v in ped.items() if k[0] == 'crossing' for x in v]
+    for side in SIDES:                                              # people who cannot use stairs
+        xs = ped[('stepfree', 'crossing', side)]
+        if xs: rows_sf.append({'scenario': scn, 'side': side, 'road': SIDE_NAME[side], 'people': len(xs),
+                               'trip_time_mean_s': round(mean([x[0] for x in xs]), 1), 'time_lost_mean_s': round(mean([x[1] for x in xs]), 1),
+                               'extra_walk_m_mean': round(mean([x[2] - x[3] for x in xs]), 1)})
+    sfx = [x for k, v in ped.items() if k[:2] == ('stepfree', 'crossing') for x in v]
     # ---- vehicles and buses
     # vehicles wanting to start 08:00-09:00: delay includes waiting to enter the network (departDelay),
     # because an oversaturated entry otherwise hides congestion
@@ -242,6 +249,8 @@ for scn in SCENARIOS:
                      'ped_time_lost_mean_s': round(mean([x[1] for x in allx]), 1),
                      'ped_detour_factor_median': round(stt.median([x[2] / max(1, x[3]) for x in allx]), 2) if allx else None,
                      'ped_extra_walk_m_mean': round(mean([x[2] - x[3] for x in allx]), 1),
+                     'stepfree_trip_time_mean_s': round(mean([x[0] for x in sfx]), 1) if sfx else None,
+                     'stepfree_extra_walk_m_mean': round(mean([x[2] - x[3] for x in sfx]), 1) if sfx else None,
                      'vehicles_finished': len(veh), 'veh_trip_time_mean_s': round(mean([v[0] for v in veh]), 1),
                      'veh_delay_mean_s': round(mean([v[1] for v in veh]), 1),
                      'bus_delay_mean_s': round(mean([b[1] for b in bus]), 1),
@@ -263,7 +272,7 @@ def write(name, rows):
         w = csv.DictWriter(f, fieldnames=list(rows[0])); w.writeheader(); w.writerows(rows)
 for name, rows in (('summary.csv', rows_sum), ('people_by_side.csv', rows_ped), ('vehicles_by_side.csv', rows_veh),
                    ('queues.csv', rows_q), ('crossings_use.csv', rows_x), ('buses.csv', rows_bus),
-                   ('junction_throughput.csv', rows_jt)): write(name, rows)
+                   ('junction_throughput.csv', rows_jt), ('people_stepfree_by_side.csv', rows_sf)): write(name, rows)
 json.dump({'summary': rows_sum, 'people': rows_ped, 'vehicles': rows_veh, 'queues': rows_q, 'crossings': rows_x, 'buses': rows_bus,
            'junction_throughput': rows_jt},
           open(O('metrics', 'metrics.json'), 'w'), indent=1)

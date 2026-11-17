@@ -5,7 +5,7 @@ collisions), edgedata.xml (vehicles + people per edge, 08:00-09:00, incl. crossi
 detectors on every approach to the A/B/C and trial signals), sumo.log.
 """
 import math, os, sys, time, xml.etree.ElementTree as ET
-from common import BIN, O, P, SCENARIOS, JUNCTIONS, cfg, hhmm, run, read_net
+from common import BIN, O, P, SCENARIOS, behaviour_opts, JUNCTIONS, cfg, hhmm, run, read_net
 
 C = cfg(); T = C['time']
 B, E = hhmm(T['sim_begin']), hhmm(T['sim_end'])
@@ -55,7 +55,7 @@ def run_scenario(scn):
            '--begin', str(B), '--end', str(E), '--step-length', str(T['step_length_s']),
            '--lateral-resolution', str(T['lateral_resolution_m']), '--seed', os.environ.get('SUMO_SEED', str(T['seed'])),
            '--pedestrian.model', 'striping', '--time-to-teleport', '300', '--ignore-route-errors', 'true',
-           '--collision.action', 'warn', '--collision.mingap-factor', '0',
+           '--collision.action', 'warn', '--collision.mingap-factor', '0', *behaviour_opts(),
            '--tripinfo-output', os.path.join(d, 'tripinfo.xml'), '--tripinfo-output.write-unfinished', 'true',
            '--statistic-output', os.path.join(d, 'stats.xml'), '--duration-log.statistics', 'true',
            '--no-step-log', 'true', '--no-warnings', 'false', '--log', os.path.join(d, 'sumo.log')]

@@ -177,7 +177,11 @@
       60
     ],
     "background_walk_trips_per_hour": 600,
-    "walking_speed_mps": 1.2
+    "walking_speed_mps": 1.2,
+    "step_free_share": 0.1,
+    "step_free_speed_mps": 1.0,
+    "_step_free_note": "ASSUMED: 1 in 10 people walking cannot use stairs (wheelchair users, prams, many older people, people with luggage), so they never use the foot over bridges; they walk at 1.0 m/s. The same people in every scenario. No local figure; a common planning allowance.",
+    "_red_light_note": "NOT MODELLED: people crossing on red when traffic leaves a gap. SUMO's two ways of allowing it (jmDriveAfterRedTime on people; giving crossings a give-way green) were tested on a test junction: both send people into moving traffic, vehicle delay rose from 17 to 91 s and people lost more time, not less. So detours here assume people wait for the green; real detours and waits are shorter."
   },
   "trial_crossings": {
     "_tag": "Positions from the study's crossing analysis (data/crossings.geojson): distance in metres along each road from its first junction. 100 Ft Rd only within the feasible zone 225-438 m (ramp wall 45-225 m).",
@@ -267,5 +271,11 @@
       "_note": "WHAT-IF, not data: proposal_151126 with the same traffic change as baseline_whatif.",
       "compare_with": "baseline_whatif"
     }
+  },
+  "vehicles": {
+    "_tag": "ASSUMED model behaviour: each driver chooses a route when setting off, from travel times seen on the network in the last few minutes (SUMO rerouting device, at departure only). Without it every vehicle takes the shortest empty-road route, so a new link or a new queue changes nothing. Rerouting on the way (every 2 minutes) was tried but crashes SUMO 1.28 on this network in about half the runs. Buses keep their timetabled routes.",
+    "rerouting_probability": 1.0,
+    "rerouting_period_s": 0,
+    "rerouting_adaptation_steps": 18
   }
 }

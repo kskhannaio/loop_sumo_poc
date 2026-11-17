@@ -12,7 +12,7 @@ Writes demand/spec.json, demand/<scenario>/{vehicles,buses,persons}.rou.xml, bus
 and demand/person_meta.csv (id, kind, place, side, straight-line distance).
 """
 import collections, csv, json, math, os, random, xml.etree.ElementTree as ET
-from common import P, SCENARIOS, SIDES, JUNCTIONS, cfg, hhmm, read_net, load_geo, carriageways, LL2M, M2LL, sumolib, KX, KY
+from common import BIN, P, SCENARIOS, SIDES, JUNCTIONS, cfg, hhmm, read_net, load_geo, carriageways, LL2M, M2LL, sumolib, KX, KY
 
 C = cfg()
 T = C['time']
@@ -226,6 +226,27 @@ def gateways(net):
                  b if math.dist(b.getToNode().getCoord(), (xo, yo)) < 60 else None)
     return gw
 
+def step_free(scn, net, proot):
+    """A fixed share of people (the same ids in every scenario) cannot use stairs, so they never take a foot over bridge.
+    They walk as SUMO's wheelchair class, and the scenario network is opened to that class on every footpath, footway,
+    crossing and junction corner, but not on stairs. Returns (people marked, 0)."""
+    import re, zlib
+    share = C['pedestrians'].get('step_free_share', 0)
+    path = P('net', f'{scn}.net.xml')
+    s = open(path).read()
+    if 'allow="pedestrian wheelchair"' not in s:                    # once per network build
+        out, steps = [], False
+        for line in s.splitlines(True):
+            if re.match(r'\s*<edge id=', line): steps = 'type="highway.steps"' in line
+            if '<lane ' in line and 'allow="pedestrian"' in line and not steps:
+                line = line.replace('allow="pedestrian"', 'allow="pedestrian wheelchair"')
+            out.append(line)
+        open(path, 'w').write(''.join(out))
+    n = 0
+    for pe in proot.findall('person'):
+        if zlib.crc32(pe.get('id').encode()) % 1000 < share * 1000: pe.set('type', 'walker_stepfree'); n += 1
+    return n, 0
+
 def write_scenario(scn, spec):
     net = net_for(scn)
     d = P('demand', scn); os.makedirs(d, exist_ok=True)
@@ -235,12 +256,17 @@ def write_scenario(scn, spec):
     root = ET.Element('routes')
     mix = {k: v for k, v in C['vehicle_mix'].items() if not k.startswith('_')}
     tot = sum(mix.values())
-    for k, attrs in VT.items(): ET.SubElement(root, 'vType', id=k, **attrs)
+    reroute = C.get('vehicles', {}).get('rerouting_probability', 0)
+    for k, attrs in VT.items():
+        vt = ET.SubElement(root, 'vType', id=k, **attrs)
+        # drivers (not buses, which keep their timetabled route) may change route on the way
+        if reroute: ET.SubElement(vt, 'param', key='has.rerouting.device', value='true')
     dist = ET.SubElement(root, 'vTypeDistribution', id='mix')
     dist.set('vTypes', ' '.join(mix)); dist.set('probabilities', ' '.join(f"{mix[k] / tot:.4f}" for k in mix))
     ET.SubElement(root, 'vType', id='bus', vClass='bus', length='12', width='2.6', minGap='2.5', accel='1.0', decel='4.0',
                   minGapLat='0.8', lcStrategic='3', lcPushy='0.5', lcAssertive='2', guiShape='bus', color='215,30,40')
     ET.SubElement(root, 'vType', id='walker', vClass='pedestrian', speed=str(C['pedestrians']['walking_speed_mps']), color='200,0,200')
+    ET.SubElement(root, 'vType', id='walker_stepfree', vClass='wheelchair', speed=str(C['pedestrians'].get('step_free_speed_mps', 1.0)), color='0,200,255')
     fly = C['flyover_opened']
     for od, vph in C['od_peak_veh_per_hour'].items():
         if od.startswith('_') or od == 'local_random': continue
@@ -332,6 +358,8 @@ def write_scenario(scn, spec):
         pe = ET.SubElement(proot, 'person', id=p['id'], depart=str(p['depart']), departPos=f"{a[1]:.1f}", type='walker')
         ET.SubElement(pe, 'personTrip', attrib={'from': a[0], 'to': b[0], 'arrivalPos': f"{b[1]:.1f}"})
         npers += 1
+    n_sf, sf_fail = step_free(scn, net, proot)
+    report.append(f"{scn}: step-free walkers {n_sf} (wheelchair class: every walkway but stairs)")
     ET.ElementTree(proot).write(os.path.join(d, 'persons.rou.xml'))
     for f, names in sorted(moved.items()):
         z = next(z for z in moves if z['feature'] == f)

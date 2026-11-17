@@ -33,6 +33,15 @@ for scn in scns:
         a['trip_s'].append(float(r['trip_time_mean_s'])); a['trip_p85_s'].append(float(r['trip_time_p85_s'])); a['people'].append(float(r['people']))
     roads[scn] = {side: {k: (round(st.mean(v), 1), round(min(v), 1), round(max(v), 1)) for k, v in a.items()} for side, a in acc.items()}
 
+# ---- people who cannot use stairs, per road ------------------------------------------------------------------------
+stepfree = {}
+for scn in scns:
+    acc = {}
+    for r in rows(scn, 'people_stepfree_by_side.csv') if all(os.path.exists(P('out', 'seeds', scn, x, 'metrics', 'people_stepfree_by_side.csv')) for x in seeds(scn)) else []:
+        a = acc.setdefault(r['side'], {'extra_walk_m': [], 'trip_s': [], 'people': []})
+        a['extra_walk_m'].append(float(r['extra_walk_m_mean'])); a['trip_s'].append(float(r['trip_time_mean_s'])); a['people'].append(float(r['people']))
+    stepfree[scn] = {side: {k: (round(st.mean(v), 1), round(min(v), 1), round(max(v), 1)) for k, v in a.items()} for side, a in acc.items()}
+
 # ---- where people cross: people per hour on each crossing, grouped by junction or crossing site --------------------
 def crossing_use(scn):
     net = sumolib.net.readNet(P('net', f'{scn}.net.xml'), withInternal=True, withPedestrianConnections=True)
@@ -98,7 +107,7 @@ axs[0].legend(fontsize=8)
 fig.text(0.01, -0.02, 'Bars: average of 5 runs; whiskers: lowest and highest run. 9:30-10:30 am.', fontsize=8, color='#555')
 plt.tight_layout(); fig.savefig(os.path.join(OUT, 'walking.png'), dpi=110, bbox_inches='tight'); plt.close(fig)
 
-json.dump({'roads': roads, 'new_crossings_people_h': {k: round(v['people_h']) for k, v in new_sites.items()},
+json.dump({'roads': roads, 'stepfree': stepfree, 'new_crossings_people_h': {k: round(v['people_h']) for k, v in new_sites.items()},
            'crossing_use': {s: {k: round(v['people_h']) for k, v in u.items() if v['people_h'] >= 20} for s, u in use.items()}},
           open(os.path.join(OUT, 'ped_summary.json'), 'w'), indent=1)
 print(json.dumps({'roads': roads, 'new': {k: round(v['people_h']) for k, v in new_sites.items()}}, indent=0)[:3000])

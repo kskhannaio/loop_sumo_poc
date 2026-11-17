@@ -24,6 +24,16 @@ def cfg():
     return json.load(open(P('config', 'assumptions.json')))
 
 
+def behaviour_opts():
+    """SUMO options for driver behaviour shared by every run (config "vehicles")."""
+    v = cfg().get('vehicles', {})
+    if not v.get('rerouting_probability'): return []
+    # the device itself is switched on per vehicle type in make_demand.py (not for buses: rerouting a bus with stops can
+    # plan an impossible U-turn and crash SUMO); these options only set how it behaves
+    return ['--device.rerouting.period', str(v['rerouting_period_s']), '--device.rerouting.pre-period', '1',
+            '--device.rerouting.adaptation-steps', str(v.get('rerouting_adaptation_steps', 18)), '--device.rerouting.adaptation-interval', '10']
+
+
 def hhmm(t):
     h, m = t.split(':'); return int(h) * 3600 + int(m) * 60
 

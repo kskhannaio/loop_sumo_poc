@@ -27,6 +27,9 @@ def values(scn, seed):
     v[('Extra walk to cross, m (all roads)', False)] = float(s['ped_extra_walk_m_mean'])
     v[('Time lost walking, s (all roads)', False)] = float(s['ped_time_lost_mean_s'])
     v[('Teleports (stuck vehicles removed)', False)] = float(s['teleports'])
+    if s.get('stepfree_extra_walk_m_mean'):
+        v[('Extra walk to cross, people who cannot use stairs, m', False)] = float(s['stepfree_extra_walk_m_mean'])
+        v[('Time to cross, people who cannot use stairs, s', False)] = float(s['stepfree_trip_time_mean_s'])
     for r in rows('junction_throughput.csv'):
         if r['junction'] == 'C':
             k = (f"  leaving C by {r['exit']}", True); v[k] = v.get(k, 0) + float(r['vehicles_per_h'])

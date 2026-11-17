@@ -1,6 +1,6 @@
 #+TITLE: Junction C proposal test
 #+SUBTITLE: The planner's drawing for junction C, simulated against today's Madiwala loop
-#+DATE: 16 November 2026
+#+DATE: 17 November 2026
 #+OPTIONS: toc:nil num:nil author:nil
 #+LANGUAGE: en
 #+LATEX_CLASS: article
@@ -13,10 +13,10 @@
 #+LATEX_HEADER: \usepackage[scaled]{helvet}\renewcommand{\familydefault}{\sfdefault}
 #+LATEX_HEADER: \AtBeginDocument{\hypersetup{hidelinks}}
 
-/Madiwala loop model, weekday 9:30–10:30 am, five runs of each version. Drawing: =151126-231655-proposal.geojson=. Online version with videos: https://claude.ai/artifact/X5gRyrz24H2JZVpMo9cJQp/
+Madiwala loop model, weekday 9:30–10:30 am. Today and the proposal: ten runs each; variants: five. Drawing: =151126-231655-proposal.geojson=. The videos are in the same folder as this report; =index.html= shows everything together.
 
 #+begin_quote
-*In short:* the proposal makes crossing near C clearly easier on foot. People walk about 40 m less to cross Hosur Road and 20 m less to cross Sarjapura Road, and crossing Sarjapura Road takes a minute less. Almost all of it comes from the two new signalised crossings. The vehicle results point the other way but are not calibrated yet.
+*In short:* the proposal shortens the walk to cross both roads near C: about 40 m less on Hosur Road, 20 m less on Sarjapura Road. Crossing Sarjapura Road takes a minute less. On Hosur Road the time gain is small, because people now wait at the new signal instead of walking to C. From the hospital side of either road, the footpath you can reach in five minutes almost doubles. Almost all of this comes from the two new signalised crossings. Vehicle results point the other way but are not calibrated yet.
 #+end_quote
 
 * What was tested
@@ -31,67 +31,86 @@ Two variants show what drives the result: the proposal *without the new crossing
 
 * Pedestrian results
 
-#+ATTR_LATEX: :environment tabularx :width \textwidth :align Xrrrr
-| Crossing                                          | Today   | Proposal  | Without new crossings | Crossings favour traffic |
-|---------------------------------------------------+---------+-----------+-----------------------+--------------------------|
-| Hosur Road: extra walk to reach a crossing        | 259 m   | *217 m*   | 264 m                 | 216 m                    |
-| Hosur Road: time to cross and reach the place     | 4.9 min | *4.1 min* | 4.9 min               | 4.3 min                  |
-| Sarjapura Road: extra walk                        | 106 m   | *84 m*    | 114 m                 | 84 m                     |
-| Sarjapura Road: time to cross and reach the place | 3.2 min | *2.2 min* | 3.4 min               | 2.3 min                  |
-| 100 Feet Road: extra walk                         | 42 m    | 42 m      | 42 m                  | 42 m                     |
+Typical run of ten.
 
-- *The new crossings are used heavily:* about 920 people an hour on the Hosur Road one and 430 on the Sarjapura Road one. Most of them used to cross at C, where use drops from about 1,180 to 260 an hour.
-- *The gains come from the crossings.* Without them, walking gets slightly longer, because the slip road adds one more road to cross at the corner.
-- *Letting traffic go first keeps most of the gain:* people lose 8–15 s more per crossing than in the plain proposal.
-- *Today is less predictable:* one of the five runs of today jammed and left people stuck on Hosur Road. The table uses the typical run there.
+#+ATTR_LATEX: :environment tabularx :width \textwidth :align Xrrr
+| Crossing                                               | Today   | Proposal  | Crossings favour traffic |
+|--------------------------------------------------------+---------+-----------+--------------------------|
+| Hosur Road: extra walk to reach a crossing             | 260 m   | *217 m*   | 217 m                    |
+| Hosur Road: time to cross and reach the place          | 5.0 min | *4.7 min* | 4.8 min                  |
+| Sarjapura Road: extra walk                             | 106 m   | *84 m*    | 84 m                     |
+| Sarjapura Road: time to cross and reach the place      | 3.2 min | *2.2 min* | 2.3 min                  |
+| People who cannot use stairs: Hosur Road extra walk    | 245 m   | *208 m*   | 206 m                    |
+| People who cannot use stairs: Sarjapura Road time      | 3.3 min | *2.3 min* | 2.4 min                  |
+| 100 Feet Road: extra walk                              | 42 m    | 42 m      | 42 m                     |
 
-#+CAPTION: Extra walk and time lost per road. Average of five runs; whiskers show the lowest and highest run.
+- *The new crossings are used heavily:* about 930 people an hour on the Hosur Road one and 430 on the Sarjapura Road one. Most of them used to cross at C.
+- *Hosur Road gains distance more than time:* people walk 43 m less but wait at the new signal (18 s of green in a 75 s cycle). Today's Hosur Road is also less predictable: across ten runs it took 4.8 to 9.8 minutes, the proposal 4.6 to 5.0.
+- *People who cannot use stairs* (1 in 10 in the model) gain the same distance; on Sarjapura Road they save a minute; on Hosur Road their time barely changes.
+- *Without the new crossings* the walks are as long as today or slightly longer (Hosur 253 m, Sarjapura 114 m): the gains come from the crossings. Crowds then build at the foot over bridge stairs at C, which the model exaggerates, so that variant's times are not shown.
+- *More waiting at signals:* in one recorded hour, people spent 1,341 person-minutes standing still near C with the proposal, against 1,042 today. The waiting moves from the foot over bridge stairs to the new crossings.
+
+#+CAPTION: Extra walk and time lost per road. Bars: average of the runs; whiskers: lowest and highest run.
 #+ATTR_LATEX: :width \textwidth
 [[file:walking.png]]
 
-#+CAPTION: People crossing per hour at each crossing. Blue: existing crossings and foot over bridges. Pink: the two new crossings.
+#+CAPTION: How far you can walk in five minutes from the hospital side of each road, where the new crossings land, including average signal waits. From the street network alone.
+#+ATTR_LATEX: :width 0.9\textwidth
+[[file:walk_reach.png]]
+
+From the hospital side of Hosur Road, the footpath within five minutes grows from 2.7 km to 5.2 km; from the hospital side of Sarjapura Road, from 3.0 km to 4.9 km. The new crossing opens up the streets across the road.
+
+#+CAPTION: Where people stood waiting near C over the hour (one run).
 #+ATTR_LATEX: :width \textwidth
-[[file:where_people_cross.png]]
+[[file:wait_heat.png]]
 
-* Before and after in the simulation
+* Three people, followed
 
-The same moment (10:01 am) with the same traffic, today on the left and the proposal on the right. Simulated, not footage: the grey photo underneath is only for orientation. Two-minute videos at 8× speed: =clip_C.mp4= (junction C) and =clip_loop.mp4= (whole loop), in this folder and on the online version.
+The same person on the same trip in both runs, side by side. Picked as typical: the time saved closest to the median for their kind of trip. Videos: =follow_1.mp4=, =follow_2.mp4=, =follow_3.mp4=.
 
-- *Today:* a stream of people walks up the Hosur Road footpaths to C and bunches at its crossings. Their faint trails show the detour.
-- *Proposal:* people cross at the two new crossings (yellow dots on the pink bars) and the walk up to C mostly disappears.
-- *Traffic:* queues stand behind the new crossings, especially on Hosur Road towards C. The slip road stays almost empty; see below.
+#+ATTR_LATEX: :environment tabularx :width \textwidth :align Xrr
+| Who                                                                     | Today | Proposal |
+|-------------------------------------------------------------------------+-------+----------|
+| Bus passenger at the St John's Hospital stop, crossing Hosur Road       | 3:02  | 2:09     |
+| Bus passenger at the St John's Hospital stop, crossing Sarjapura Road   | 3:26  | 1:24     |
+| Someone who cannot use stairs, crossing Hosur Road from the same stop   | 2:45  | 1:20     |
 
-#+CAPTION: Junction C at 10:01 am. Pink: people walking; yellow: people on a crossing; blue: cars; orange: two-wheelers; red: buses.
+#+CAPTION: Someone who cannot use stairs: today they walk up to C and back; with the proposal they cross straight over.
 #+ATTR_LATEX: :width \textwidth
-[[file:still_C.png]]
+[[file:still_follow_3.png]]
+
+* The whole hour
+
+Videos: =hour_C.mp4= (junction C) and =hour_loop.mp4= (whole loop), 9:30–10:30 at 60× speed, with a running count of people who have crossed. =clip_C.mp4= and =clip_loop.mp4= show two minutes at 8×. Pink dots are people walking, yellow are people on a crossing; the proposal's changes are labelled on the map.
+
+#+CAPTION: Junction C at 10:00 am in the hour-long run.
+#+ATTR_LATEX: :width \textwidth
+[[file:still_hour_C.png]]
 
 * Vehicles: direction only
 
 *The vehicle side is not calibrated.* No traffic has been counted on the loop and there are no turning counts at C, so read these as direction, not as measured losses.
 
-In the model the proposal slows Sarjapura Road towards C, Hosur Road in both directions and 100 Feet Road towards B, in all five runs. Queues from the two new crossings reach back to C and A. The slip road carries almost nothing, because almost no modelled traffic turns from Sarjapura Road towards B. That reflects missing data, not the design.
+In the model the proposal slows Hosur Road towards C in every run, and vehicle and bus delays rise in most runs. Queues from the two new crossings reach back towards C and A. The slip road carries no traffic even when drivers choose routes from current travel times: no modelled traffic needs that turn. That reflects missing data, not the design.
 
-#+CAPTION: Change against today, average of five runs.
+#+CAPTION: Change against today.
 #+ATTR_LATEX: :width 0.85\textwidth
 [[file:changes.png]]
-
-#+CAPTION: Average vehicle speed on each road and direction, km/h.
-#+ATTR_LATEX: :width \textwidth
-[[file:loop_speeds.png]]
 
 * Assumptions
 
 ** Pedestrians (the results above rely on these)
 
 #+ATTR_LATEX: :environment tabularx :width \textwidth :align lXl
-| What                     | Assumed                                                                                                                                                                     | Source                     |
-|--------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------|
-| Who crosses              | Bus passengers (6 get on or off per bus, half cross), plus people going to hospitals and schools (60 an hour each), temples, parks and amenities (25), side streets (30), and 600 background walks an hour | Our estimate; no counts    |
-| Where they start and end | Within 60 m either side of each place, on the far side of the road                                                                                                          | Our estimate               |
-| Walking speed            | 1.2 m/s; foot over bridge stairs 0.5 m/s                                                                                                                                    | Standard values            |
-| Where people cross       | Only at crossings and foot over bridges; nobody crosses through traffic, so detours are an upper bound                                                                       | Model limit                |
-| Footpaths                | Along every road OpenStreetMap shows; widths guessed                                                                                                                        | OpenStreetMap              |
-| Buses                    | BMTC timetable for the hour; 20 s at each stop                                                                                                                              | Unofficial feed; stop time assumed |
+| What                         | Assumed                                                                                                                                                                     | Source                              |
+|------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------|
+| Who crosses                  | Bus passengers (6 get on or off per bus, half cross), plus people going to hospitals and schools (60 an hour each), temples, parks and amenities (25), side streets (30), and 600 background walks an hour | Our estimate; no counts |
+| Where they start and end     | Within 60 m either side of each place, on the far side of the road                                                                                                          | Our estimate                        |
+| Walking speed                | 1.2 m/s; foot over bridge stairs 0.5 m/s                                                                                                                                    | Standard values                     |
+| People who cannot use stairs | 1 in 10 (wheelchairs, prams, many older people); they never use foot over bridges and walk at 1.0 m/s                                                                       | Planning allowance; no local figure |
+| Where people cross           | Only at crossings and foot over bridges, and only on the green. Crossing on red in gaps is not modelled: the simulator's ways of allowing it sent people into moving traffic. Detours and waits are an upper bound | Model limit |
+| Footpaths                    | Along every road OpenStreetMap shows; widths guessed                                                                                                                        | OpenStreetMap                       |
+| Buses                        | BMTC timetable for the hour; 20 s at each stop                                                                                                                              | Unofficial feed; stop time assumed  |
 
 ** How the drawing was read
 
@@ -114,19 +133,20 @@ In the model the proposal slows Sarjapura Road towards C, Hosur Road in both dir
 | Hour            | 9:30–10:30 am, but volumes not raised for it                                              | Published counts peak then      |
 | Vehicle mix     | Two-wheelers 45%, cars 30%, autos 13%, the rest vans, goods vehicles and trucks           | Indiranagar–Domlur count, 2025  |
 | Signals         | A and C adjust green to the queues (8–60 s); B has no signal                              | A, C assumed; B from drawings   |
-| Routes          | Each vehicle picks the shortest route at the start and keeps it                           | Model setting                   |
+| Routes          | Each driver picks a route when setting off, from recent travel times; buses keep theirs. Changing route on the way crashes the simulator on this network | Model setting |
 | Lanes           | From OpenStreetMap, plus two-lane slip roads at B                                         | Map, corrected by us            |
 
 * Making the model better
 
 1. *Turning counts at A, B and C* for the peak hour, by vehicle type. This settles whether the slip road matters.
 2. *Pedestrian counts at each crossing and where people cross informally*, with wait times. This replaces our largest pedestrian estimate.
-3. *Signal timings at A and C*, and what actually happens at B.
-4. *Vehicles cleared per green* on the busiest approaches, and usable road width.
-5. *Travel times around the loop*, three runs each way, to check the model against the street.
-6. *Bus stop times at the St John's stops*, and how much of the lane a stopped bus blocks.
-7. *The planner's notes on the drawing:* what each zone is, and the crossing type.
-8. *Let drivers change route* once counts exist, so new links and new queues change where traffic goes.
-9. *Raise traffic volumes for 9:30–10:30* once the counts exist.
+3. *How many people cross on red, and when.* The simulator cannot yet do this realistically; counts would show how much shorter real detours are.
+4. *Signal timings at A and C*, and what actually happens at B.
+5. *Vehicles cleared per green* on the busiest approaches, and usable road width.
+6. *Travel times around the loop*, three runs each way, to check the model against the street.
+7. *Bus stop times at the St John's stops*, and how much of the lane a stopped bus blocks.
+8. *The planner's notes on the drawing:* what each zone is, and the crossing type.
+9. *Foot over bridge stair widths*, measured on the walk, so crowding there is not exaggerated.
+10. *Raise traffic volumes for 9:30–10:30* once the counts exist.
 
 Simulated with SUMO on the OpenStreetMap network. Bus timetable: unofficial BMTC feed. Imagery: Esri World Imagery. Every setting is in the model's =config/assumptions.json=, marked as assumed or data.

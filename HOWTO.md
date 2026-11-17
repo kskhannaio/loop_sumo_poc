@@ -40,7 +40,8 @@ SUMO ships as a pip package (`eclipse-sumo`); `sumolib` (bundled) reads networks
 | 3 | `make_demand.py` | Writes a scenario-independent demand spec in lon/lat once (seeded), then maps it onto each network. |
 | 4 | `run_sim.py` | Runs each scenario with the sublane model (two-wheelers filter between cars) and pedestrian "striping" model. |
 | 5–6 | `metrics.py`, `report.py` | CSVs, charts, `report/REPORT.md`, `results.geojson`. `junction_throughput.csv` counts vehicles leaving each junction, 40 m down every exit, so traffic using a drawn slip road still counts. |
-| – | `seeds.py`, `compare.py` | Five runs with different random seeds for one scenario (`out/seeds/`), and a paired comparison of two scenarios over the same seeds. |
+| – | `seeds.py`, `run_queue.sh`, `compare.py` | Runs with different random seeds (`out/seeds/`; `run_queue.sh jobs.txt` runs many, 11 at a time), and a paired comparison of two scenarios over the same seeds. |
+| – | `clip.py`, `follow.py`, `wait_heat.py`, `walk_reach.py` | Pictures and videos on satellite imagery: side-by-side clips (`--hour` for 9:30–10:30 at 60x), one person followed through both scenarios, where people wait, and how far you can walk in five minutes. |
 
 All assumed numbers (volumes, signal timings, pedestrian rates) are in `config/assumptions.json`.
 
@@ -171,4 +172,13 @@ What the reader does with each kind of mark:
   overlaps are drawing tolerance); `widen_footpath` widens footpaths inside the shape; `bus_stop` moves the nearest existing
   stops on the road beside the shape into it, along the same road, and a shape of 200 m² or more becomes an off-road bay
   where the stopped bus leaves the running lane.
+
+## Behaviour settings worth knowing
+
+- **People who cannot use stairs** (`pedestrians.step_free_share`, 10%): they walk as SUMO's wheelchair class, and
+  `make_demand.py` opens every walkway except stairs to that class in each scenario network.
+- **Driver route choice** (`vehicles`): at departure only, from recent travel times. Rerouting on the way crashes
+  SUMO 1.28 on this network (`std::bad_alloc`) in about half the runs; buses never reroute.
+- **Crossing on red** is not modelled. `jmDriveAfterRedTime` on people, or giving crossings a give-way green, both sent
+  people into moving traffic in a test junction (vehicle delay 17 s to 91 s, people slower too).
 
